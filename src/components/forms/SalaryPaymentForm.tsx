@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DollarSign, Calendar } from 'lucide-react';
+import { Coins, Calendar } from 'lucide-react';
 import { CURRENCIES, PAYMENT_STATUS, type Currency } from '@/lib/constants';
 
 const salaryPaymentFormSchema = z.object({
@@ -47,19 +47,20 @@ interface SalaryPaymentFormProps {
   defaultCurrency?: Currency;
 }
 
-export function SalaryPaymentForm({ 
-  initialData, 
-  onSubmit, 
-  isLoading, 
+export function SalaryPaymentForm({
+  initialData,
+  onSubmit,
+  isLoading,
   employeeName,
   defaultSalary = 0,
-  defaultCurrency = 'PKR'
+  defaultCurrency = 'PKR',
 }: SalaryPaymentFormProps) {
   const form = useForm<SalaryPaymentFormValues>({
     resolver: zodResolver(salaryPaymentFormSchema),
     defaultValues: {
       month: initialData?.month || new Date().toISOString().slice(0, 7), // YYYY-MM format
-      amount: initialData?.amount || (defaultSalary > 0 ? defaultSalary : undefined),
+      amount:
+        initialData?.amount || (defaultSalary > 0 ? defaultSalary : undefined),
       currency: initialData?.currency || defaultCurrency,
       status: initialData?.status || 'Paid',
     },
@@ -70,7 +71,7 @@ export function SalaryPaymentForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700 border-b pb-2">
-            <DollarSign className="h-4 w-4" />
+            <Coins className="h-4 w-4" />
             Salary Payment {employeeName && `for ${employeeName}`}
           </div>
 
@@ -101,7 +102,7 @@ export function SalaryPaymentForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
+                    <Coins className="h-4 w-4" />
                     Amount
                   </FormLabel>
                   <FormControl>
@@ -125,7 +126,10 @@ export function SalaryPaymentForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select currency" />
@@ -151,7 +155,10 @@ export function SalaryPaymentForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Payment Status</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select payment status" />
@@ -175,7 +182,11 @@ export function SalaryPaymentForm({
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="submit" disabled={isLoading} className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+          >
             {isLoading ? 'Saving...' : 'Record Payment'}
           </Button>
         </div>

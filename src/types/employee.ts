@@ -1,4 +1,4 @@
-import type { Department, EmployeePosition } from "@/lib/constants";
+import type { Department, EmployeePosition } from '@/lib/constants';
 
 export type EmployeeStatus = 'active' | 'inactive' | 'on-leave' | 'terminated';
 export type EmployeeLevel =
@@ -18,6 +18,7 @@ export interface AttendanceRecord {
 }
 
 export interface BonusRecord {
+  $id?: string;
   id: string;
   amount: number;
   reason: string;
@@ -26,7 +27,7 @@ export interface BonusRecord {
 }
 
 export interface SalaryPayment {
-  $id:string;
+  $id: string;
   id: string;
   month: string; // YYYY-MM
   amount: number;
@@ -34,7 +35,7 @@ export interface SalaryPayment {
   status: 'pending' | 'paid' | 'overdue';
   bonusAmount?: number;
   deductions?: number;
-  bonus:BonusRecord;
+  bonus: BonusRecord;
   netAmount: number;
 }
 

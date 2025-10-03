@@ -37,7 +37,10 @@ export async function PATCH(
     return NextResponse.json(updated);
   } catch (error: unknown) {
     console.error('PATCH /api/clients/[id] error:', error);
-    return NextResponse.json({ error: 'Failed to update client' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to update client' },
+      { status: 500 }
+    );
   }
 }
 
@@ -56,6 +59,9 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error('DELETE /api/clients/[id] error:', error);
-    return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to delete client' },
+      { status: 500 }
+    );
   }
 }

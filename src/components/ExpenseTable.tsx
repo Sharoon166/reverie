@@ -32,7 +32,6 @@ import {
   ListFilterIcon,
   TrashIcon,
   Edit,
-
   Receipt,
   Trash2,
 } from 'lucide-react';
@@ -88,11 +87,7 @@ import {
 import { Expense, ExpenseCategory, PaymentAccount } from '@/types/expense';
 
 // Custom filter function for multi-column searching
-const multiColumnFilterFn: FilterFn<Expense> = (
-  row,
-  columnId,
-  filterValue
-) => {
+const multiColumnFilterFn: FilterFn<Expense> = (row, columnId, filterValue) => {
   const searchableRowContent =
     `${row.original.description} ${row.original.category} ${row.original.paidBy} ${row.original.account}`.toLowerCase();
   const searchTerm = (filterValue ?? '').toLowerCase();
@@ -300,13 +295,15 @@ export default function ExpenseTable({
           const currency = row.original.currency;
           const formatted = new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: currency === 'PKR' ? 'USD' : currency,
+            currency: currency === 'PKR' ? 'PKR' : currency,
             minimumFractionDigits: 0,
           }).format(amount);
-          
+
           return (
             <div className="font-medium">
-              {currency === 'PKR' ? `${amount.toLocaleString()} PKR` : formatted}
+              {currency === 'PKR'
+                ? `${amount.toLocaleString()} PKR`
+                : formatted}
             </div>
           );
         },
@@ -421,7 +418,9 @@ export default function ExpenseTable({
 
   // Get selected filter values
   const selectedCategories = useMemo(() => {
-    const filterValue = table.getColumn('category')?.getFilterValue() as string[];
+    const filterValue = table
+      .getColumn('category')
+      ?.getFilterValue() as string[];
     return filterValue ?? [];
   }, [table]);
 
@@ -431,12 +430,16 @@ export default function ExpenseTable({
   }, [table]);
 
   const selectedAccounts = useMemo(() => {
-    const filterValue = table.getColumn('account')?.getFilterValue() as string[];
+    const filterValue = table
+      .getColumn('account')
+      ?.getFilterValue() as string[];
     return filterValue ?? [];
   }, [table]);
 
   const handleCategoryChange = (checked: boolean, value: string) => {
-    const filterValue = table.getColumn('category')?.getFilterValue() as string[];
+    const filterValue = table
+      .getColumn('category')
+      ?.getFilterValue() as string[];
     const newFilterValue = filterValue ? [...filterValue] : [];
 
     if (checked) {
@@ -472,7 +475,9 @@ export default function ExpenseTable({
   };
 
   const handleAccountChange = (checked: boolean, value: string) => {
-    const filterValue = table.getColumn('account')?.getFilterValue() as string[];
+    const filterValue = table
+      .getColumn('account')
+      ?.getFilterValue() as string[];
     const newFilterValue = filterValue ? [...filterValue] : [];
 
     if (checked) {
@@ -501,10 +506,12 @@ export default function ExpenseTable({
               ref={inputRef}
               className={cn(
                 'peer min-w-60 ps-9',
-                Boolean(table.getColumn('description')?.getFilterValue()) && 'pe-9'
+                Boolean(table.getColumn('description')?.getFilterValue()) &&
+                  'pe-9'
               )}
               value={
-                (table.getColumn('description')?.getFilterValue() ?? '') as string
+                (table.getColumn('description')?.getFilterValue() ??
+                  '') as string
               }
               onChange={(e) =>
                 table.getColumn('description')?.setFilterValue(e.target.value)

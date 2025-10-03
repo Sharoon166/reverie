@@ -1,10 +1,15 @@
 // Client TypeScript types/interfaces aligned with UI usage (camelCase)
-export type Currency = "PKR" | "USD";
+export type Currency = 'PKR';
 
 // Match capitalized enums used across the UI and constants
-export type ClientStatus = "Active" | "Inactive";
-export type ClientSource = "Website" | "LinkedIn" | "Referral" | "Cold Email" | "Facebook";
-export type ClientCategory = "Client" | "Agency Partner";
+export type ClientStatus = 'Active' | 'Inactive';
+export type ClientSource =
+  | 'Website'
+  | 'LinkedIn'
+  | 'Referral'
+  | 'Cold Email'
+  | 'Facebook';
+export type ClientCategory = 'Client' | 'Agency Partner';
 
 export interface Project {
   id: string;
@@ -16,8 +21,8 @@ export interface Project {
   currency: Currency;
   profitExpected: number;
   profitActual?: number;
-  status: "Planning" | "In Progress" | "Completed" | "On Hold" | "Cancelled";
-  quarter: string; 
+  status: 'Planning' | 'In Progress' | 'Completed' | 'On Hold' | 'Cancelled';
+  quarter: string;
   description?: string;
 }
 

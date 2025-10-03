@@ -29,7 +29,12 @@ interface NotesFormProps {
   entityName?: string;
 }
 
-export function NotesForm({ initialNotes, onSubmit, isLoading, entityName = 'item' }: NotesFormProps) {
+export function NotesForm({
+  initialNotes,
+  onSubmit,
+  isLoading,
+  entityName = 'item',
+}: NotesFormProps) {
   const form = useForm<NotesFormValues>({
     resolver: zodResolver(notesFormSchema),
     defaultValues: {
@@ -66,7 +71,11 @@ export function NotesForm({ initialNotes, onSubmit, isLoading, entityName = 'ite
         />
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="submit" disabled={isLoading} className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+          >
             {isLoading ? 'Saving...' : 'Save Notes'}
           </Button>
         </div>

@@ -1,7 +1,7 @@
-import { APPWRITE_DB } from "./appwrite";
+import { APPWRITE_DB } from './appwrite';
 
 export function getImageUrl(fileId?: string) {
-  if (!fileId) return "/default-avatar.png"; // fallback
+  if (!fileId) return '/default-avatar.png'; // fallback
 
   const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!;
   const project = process.env.NEXT_PUBLIC_APPWRITE_PROJECT_ID!;

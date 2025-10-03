@@ -1,4 +1,4 @@
-'use server'
+'use server';
 
 import { APPWRITE_DB, db, ID } from '@/lib/appwrite';
 import { Query } from 'appwrite';
@@ -13,7 +13,7 @@ export type InvoiceRow = {
   companyName?: string;
   invoiceNumber: string;
   issueDate: string; // YYYY-MM-DD
-  dueDate: string;   // YYYY-MM-DD
+  dueDate: string; // YYYY-MM-DD
   serviceType: string;
   description?: string;
   amount: number;
@@ -27,7 +27,7 @@ export type InvoiceRow = {
 function toCamel(row): InvoiceRow {
   // Appwrite returns the ID in the $id field
   const id = row.$id || row.id || '';
-  
+
   return {
     $id: id,
     id: id,
@@ -62,9 +62,9 @@ export async function getInvoiceById(id: string): Promise<Invoice> {
     tableId: APPWRITE_DB.tables.invoices,
     rowId: id,
   });
-  
+
   const invoiceData = toCamel(row as unknown as Invoice);
-  
+
   // Convert to Invoice type with all required fields
   return {
     id: invoiceData.$id || invoiceData.id || '',
@@ -82,7 +82,7 @@ export async function getInvoiceById(id: string): Promise<Invoice> {
     notes: invoiceData.notes,
     paidDate: invoiceData.paidDate,
     quarter: invoiceData.quarter || '',
-    $id: invoiceData.$id || invoiceData.id || ''
+    $id: invoiceData.$id || invoiceData.id || '',
   } as Invoice;
 }
 

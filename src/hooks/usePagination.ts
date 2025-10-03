@@ -19,7 +19,10 @@ interface UsePaginationReturn<T> {
   totalItems: number;
 }
 
-export function usePagination<T>({ data, itemsPerPage = 10 }: UsePaginationProps<T>): UsePaginationReturn<T> {
+export function usePagination<T>({
+  data,
+  itemsPerPage = 10,
+}: UsePaginationProps<T>): UsePaginationReturn<T> {
   const [currentPage, setCurrentPage] = useState(1);
 
   const paginatedData = useMemo(() => {
@@ -64,6 +67,6 @@ export function usePagination<T>({ data, itemsPerPage = 10 }: UsePaginationProps
     canGoPrev,
     startIndex,
     endIndex,
-    totalItems: data.length
+    totalItems: data.length,
   };
 }

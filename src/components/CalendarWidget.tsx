@@ -1,16 +1,28 @@
-"use client";
-import React, { useState, useEffect, JSX } from "react";
-import { getDaysInMonth, getDay, format, isToday } from "date-fns";
-import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Plus, Calendar, Clock } from "lucide-react";
-import { toast } from "sonner";
+'use client';
+import React, { useState, useEffect, JSX } from 'react';
+import { getDaysInMonth, getDay, format, isToday } from 'date-fns';
+import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Goal = {
   $id: string;
@@ -24,22 +36,25 @@ type Goal = {
 const priorityColors = {
   low: '#10b981',
   medium: '#f59e0b',
-  high: '#ef4444'
+  high: '#ef4444',
 };
 
 const CalendarWidget: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [selectedDay, setSelectedDay] = useState<{ date: Date; events: Goal[] } | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{
+    date: Date;
+    events: Goal[];
+  } | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hoveredDay, setHoveredDay] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Form state
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [targetDate, setTargetDate] = useState("");
+  const [targetDate, setTargetDate] = useState('');
 
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth();
@@ -81,7 +96,7 @@ const CalendarWidget: React.FC = () => {
           description: description.trim(),
           targetDate,
           priority,
-          status: 'pending'
+          status: 'pending',
         }),
       });
 
@@ -90,13 +105,13 @@ const CalendarWidget: React.FC = () => {
       }
 
       const newGoal = await response.json();
-      setGoals(prev => [...prev, newGoal]);
+      setGoals((prev) => [...prev, newGoal]);
 
       // Reset form
-      setTitle("");
-      setDescription("");
+      setTitle('');
+      setDescription('');
       setPriority('medium');
-      setTargetDate("");
+      setTargetDate('');
       setShowAddDialog(false);
 
       return 'Goal created successfully';
@@ -134,7 +149,7 @@ const CalendarWidget: React.FC = () => {
     year,
     month,
     goals,
-    onDayClick
+    onDayClick,
   }: {
     year: number;
     month: number;
@@ -146,7 +161,7 @@ const CalendarWidget: React.FC = () => {
 
     // Group goals by day for quick lookup
     const goalsByDay: Record<number, Goal[]> = {};
-    goals.forEach(goal => {
+    goals.forEach((goal) => {
       const goalDate = new Date(goal.targetDate);
       if (goalDate.getMonth() === month && goalDate.getFullYear() === year) {
         const day = goalDate.getDate();
@@ -160,7 +175,10 @@ const CalendarWidget: React.FC = () => {
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(
-        <div key={`empty-${i}`} className="h-28 bg-gray-50/50 border border-gray-100" />
+        <div
+          key={`empty-${i}`}
+          className="h-28 bg-gray-50/50 border border-gray-100"
+        />
       );
     }
 
@@ -183,7 +201,9 @@ const CalendarWidget: React.FC = () => {
           onMouseEnter={() => setHoveredDay(day)}
           onMouseLeave={() => setHoveredDay(null)}
         >
-          <div className={`text-right text-sm font-medium mb-1 ${isCurrentDay ? 'text-yellow-600' : 'text-gray-700'}`}>
+          <div
+            className={`text-right text-sm font-medium mb-1 ${isCurrentDay ? 'text-yellow-600' : 'text-gray-700'}`}
+          >
             {day}
           </div>
           <div className="space-y-1">
@@ -233,11 +253,16 @@ const CalendarWidget: React.FC = () => {
                 {format(currentDate, 'MMMM yyyy')}
               </h2>
               <p className="text-sm text-gray-500">
-                {goals.filter(g => {
-                  const goalDate = new Date(g.targetDate);
-                  return goalDate.getMonth() === currentMonth &&
-                    goalDate.getFullYear() === currentYear;
-                }).length} goals this month
+                {
+                  goals.filter((g) => {
+                    const goalDate = new Date(g.targetDate);
+                    return (
+                      goalDate.getMonth() === currentMonth &&
+                      goalDate.getFullYear() === currentYear
+                    );
+                  }).length
+                }{' '}
+                goals this month
               </p>
             </div>
           </div>
@@ -263,8 +288,11 @@ const CalendarWidget: React.FC = () => {
 
         {/* Day names */}
         <div className="grid grid-cols-7 mb-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-3 text-center text-sm font-semibold text-gray-600 uppercase tracking-wide">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+            <div
+              key={day}
+              className="p-3 text-center text-sm font-semibold text-gray-600 uppercase tracking-wide"
+            >
               {day}
             </div>
           ))}
@@ -341,7 +369,12 @@ const CalendarWidget: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
-              <Select value={priority} onValueChange={(value: 'low' | 'medium' | 'high') => setPriority(value)}>
+              <Select
+                value={priority}
+                onValueChange={(value: 'low' | 'medium' | 'high') =>
+                  setPriority(value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
@@ -362,10 +395,7 @@ const CalendarWidget: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleAddGoal}
-              disabled={isLoading}
-            >
+            <Button onClick={handleAddGoal} disabled={isLoading}>
               {isLoading ? 'Creating...' : 'Create Goal'}
             </Button>
           </DialogFooter>
@@ -373,7 +403,10 @@ const CalendarWidget: React.FC = () => {
       </Dialog>
 
       {/* View Goals Dialog */}
-      <Dialog open={!!selectedDay && !showAddDialog} onOpenChange={open => !open && setSelectedDay(null)}>
+      <Dialog
+        open={!!selectedDay && !showAddDialog}
+        onOpenChange={(open) => !open && setSelectedDay(null)}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
@@ -382,10 +415,13 @@ const CalendarWidget: React.FC = () => {
               </div>
               <div>
                 <div className="text-lg font-semibold">
-                  {selectedDay?.date && format(selectedDay.date, 'EEEE, MMMM d, yyyy')}
+                  {selectedDay?.date &&
+                    format(selectedDay.date, 'EEEE, MMMM d, yyyy')}
                 </div>
                 {selectedDay?.date && isToday(selectedDay.date) && (
-                  <Badge variant="secondary" className="mt-1">Today</Badge>
+                  <Badge variant="secondary" className="mt-1">
+                    Today
+                  </Badge>
                 )}
               </div>
             </DialogTitle>
@@ -403,7 +439,9 @@ const CalendarWidget: React.FC = () => {
                   size="sm"
                   onClick={() => {
                     setSelectedDay(null);
-                    setTargetDate(selectedDay?.date.toISOString().split('T')[0] || '');
+                    setTargetDate(
+                      selectedDay?.date.toISOString().split('T')[0] || ''
+                    );
                     setShowAddDialog(true);
                   }}
                   className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
@@ -414,17 +452,27 @@ const CalendarWidget: React.FC = () => {
               </div>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {selectedDay?.events.length ? (
-                  selectedDay.events.map(goal => (
-                    <div key={goal.$id} className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors">
+                  selectedDay.events.map((goal) => (
+                    <div
+                      key={goal.$id}
+                      className="flex items-center justify-between p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
                       <div className="flex items-center gap-3">
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm"
-                          style={{ backgroundColor: priorityColors[goal.priority] }}
+                          style={{
+                            backgroundColor: priorityColors[goal.priority],
+                          }}
                         />
                         <div>
-                          <span className="text-sm font-medium text-gray-900">{goal.title}</span>
+                          <span className="text-sm font-medium text-gray-900">
+                            {goal.title}
+                          </span>
                           <div className="text-xs text-gray-500 mt-0.5">
-                            <Badge variant="outline" className="text-xs capitalize">
+                            <Badge
+                              variant="outline"
+                              className="text-xs capitalize"
+                            >
                               {goal.priority} Priority
                             </Badge>
                           </div>

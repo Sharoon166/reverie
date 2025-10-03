@@ -1,7 +1,9 @@
 'use server';
 
 import { APPWRITE_DB, db, ID } from '@/lib/appwrite';
+import { formatPakistaniCurrency } from '@/lib/utils';
 import { Query } from 'appwrite';
+import { createQuarter } from '@/utils/quarterCreation';
 
 // Utilities
 function quarterRange(year: number, q: 1 | 2 | 3 | 4) {
@@ -11,7 +13,6 @@ function quarterRange(year: number, q: 1 | 2 | 3 | 4) {
   const iso = (d: Date) => d.toISOString().split('.')[0] + 'Z'; // trim ms for consistency
   return { start, end, startISO: iso(start), endISO: iso(end) };
 }
-
 function monthsOfQuarter(year: number, q: 1 | 2 | 3 | 4) {
   const start = (q - 1) * 3 + 1; // 1..12
   const months: string[] = [];
@@ -44,7 +45,10 @@ export type QuarterlySummary = {
 };
 
 // Check if a quarter is closed
-export async function isQuarterClosed(quarter: number, year: number): Promise<boolean> {
+export async function isQuarterClosed(
+  quarter: number,
+  year: number
+): Promise<boolean> {
   try {
     const quarterId = `q${quarter}-${year}`;
     const existingClosure = await db.listRows({
@@ -53,10 +57,10 @@ export async function isQuarterClosed(quarter: number, year: number): Promise<bo
       queries: [
         Query.equal('quarterId', quarterId),
         Query.equal('status', 'closed'),
-        Query.limit(1)
-      ]
+        Query.limit(1),
+      ],
     });
-    
+
     return existingClosure.rows && existingClosure.rows.length > 0;
   } catch (error) {
     console.error('Error checking quarter status:', error);
@@ -67,7 +71,7 @@ export async function isQuarterClosed(quarter: number, year: number): Promise<bo
 // Get current quarter info
 export async function getCurrentQuarterInfo() {
   const now = new Date();
-  const quarter = Math.floor(now.getMonth() / 3) + 1 as 1 | 2 | 3 | 4;
+  const quarter = (Math.floor(now.getMonth() / 3) + 1) as 1 | 2 | 3 | 4;
   const year = now.getFullYear();
   return { quarter, year };
 }
@@ -184,12 +188,13 @@ export async function getQuarterlySummaries(year?: number) {
     }
 
     const netProfit = totalRevenue - totalExpenses - totalSalaries;
-    const profitMargin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 1000) / 10 : 0;
+    const profitMargin =
+      totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 1000) / 10 : 0;
 
     // Determine status
     let status: 'active' | 'closed' | 'archived' = 'archived';
     const nowTs = Date.now();
-    
+
     // First check if quarter is explicitly closed in the database
     const isClosed = await isQuarterClosed(q, y);
     if (isClosed) {
@@ -213,44 +218,21 @@ export async function getQuarterlySummaries(year?: number) {
       totalSalaries,
       netProfit,
       profitMargin,
-      counts: { clients, newClients, leads, convertedLeads, invoices, paidInvoices },
+      counts: {
+        clients,
+        newClients,
+        leads,
+        convertedLeads,
+        invoices,
+        paidInvoices,
+      },
     });
   }
 
   return results;
 }
 
-/**
- * Generate a PDF report for a specific quarter
- */
-export async function generateQuarterlyReportPDF(quarterId: string): Promise<Buffer> {
-  try {
-    // This is a placeholder implementation
-    // In a real application, you would use a PDF generation library like pdfkit or puppeteer
-    // to generate a PDF report with the quarter's data
-    
-    // For now, we'll return a simple PDF buffer with the quarter ID
-    const pdfContent = `Quarterly Report: ${quarterId}\n\n` +
-      'This is a placeholder for the PDF report.\n' +
-      'In a real implementation, this would contain detailed quarter data.\n';
-    
-    // In a real implementation, you would use a PDF library to generate the actual PDF
-    // For example, with pdfkit:
-    // const PDFDocument = require('pdfkit');
-    // const doc = new PDFDocument();
-    // doc.text(pdfContent);
-    // const buffers: Buffer[] = [];
-    // doc.on('data', buffers.push.bind(buffers));
-    // await new Promise((resolve) => doc.on('end', resolve));
-    // return Buffer.concat(buffers);
-    
-    // For now, return a simple text buffer
-    return Buffer.from(pdfContent, 'utf-8');
-  } catch (error) {
-    console.error('Error generating PDF report:', error);
-    throw new Error('Failed to generate PDF report');
-  }
-}
+// PDF generation has been moved to the frontend using jsPDF
 
 /**
  * Export quarterly data as a ZIP file
@@ -260,19 +242,20 @@ export async function exportQuarterlyData(quarterId: string): Promise<Buffer> {
     // This is a placeholder implementation
     // In a real application, you would collect all relevant data for the quarter
     // and create a ZIP file with the data in a structured format (e.g., JSON, CSV)
-    
+
     // For now, we'll return a simple ZIP buffer with a readme file
-    const zipContent = `Quarterly Data Export: ${quarterId}\n\n` +
+    const zipContent =
+      `Quarterly Data Export: ${quarterId}\n\n` +
       'This is a placeholder for the data export.\n' +
       'In a real implementation, this would be a ZIP file containing:\n' +
       '- financial_data.csv\n' +
       '- client_list.json\n' +
       '- invoice_summary.xlsx\n' +
       '- other_relevant_data/\n';
-    
+
     // In a real implementation, you would use a ZIP library like jszip or archiver
     // to create a proper ZIP file with the actual data
-    
+
     // For now, return a simple text buffer
     return Buffer.from(zipContent, 'utf-8');
   } catch (error) {
@@ -281,16 +264,19 @@ export async function exportQuarterlyData(quarterId: string): Promise<Buffer> {
   }
 }
 
-export async function closeQuarter(quarterId: string, withdrawalAmount: number = 0) {
+export async function closeQuarter(
+  quarterId: string,
+  withdrawalAmount: number = 0
+) {
   // Parse quarter ID
   const [qPart, yearPart] = quarterId.split('-');
   const quarter = parseInt(qPart.replace('q', '')) as 1 | 2 | 3 | 4;
   const year = parseInt(yearPart);
-  
+
   // Get quarter data
   const summaries = await getQuarterlySummaries(year);
-  const quarterData = summaries.find(s => s.id === quarterId);
-  
+  const quarterData = summaries.find((s) => s.id === quarterId);
+
   if (!quarterData) {
     throw new Error(`Quarter ${quarterId} not found`);
   }
@@ -299,68 +285,152 @@ export async function closeQuarter(quarterId: string, withdrawalAmount: number =
     throw new Error(`Quarter ${quarterId} is not active and cannot be closed`);
   }
 
-  const cashOnHand = quarterData.totalRevenue - quarterData.totalExpenses - quarterData.totalSalaries;
-  
+  const cashOnHand =
+    quarterData.totalRevenue -
+    quarterData.totalExpenses -
+    quarterData.totalSalaries;
+
   if (withdrawalAmount > cashOnHand) {
-    throw new Error(`Withdrawal amount (${withdrawalAmount}) cannot exceed cash on hand (${cashOnHand})`);
+    throw new Error(
+      `Withdrawal amount (${withdrawalAmount}) cannot exceed cash on hand (${cashOnHand})`
+    );
   }
 
   try {
-    // Create a compact summary string (under 1000 chars)
-    const summaryText = `Clients: ${quarterData.counts.clients} (${quarterData.counts.newClients} new), Leads: ${quarterData.counts.leads} (${quarterData.counts.convertedLeads} converted), Invoices: ${quarterData.counts.invoices} (${quarterData.counts.paidInvoices} paid), Revenue: PKR ${quarterData.totalRevenue}, Expenses: PKR ${quarterData.totalExpenses}, Salaries: PKR ${quarterData.totalSalaries}, Profit: PKR ${quarterData.netProfit}`;
+    // 1. Lock all records for the quarter
+    const { startISO, endISO } = quarterRange(year, quarter);
 
-    // Store quarter closure in database
-    const quarterClosure = await db.createRow({
+    // Get all records that need to be locked
+    const [leads, clients, invoices, expenses] = await Promise.all([
+      // Get leads to archive
+      db.listRows({
+        databaseId: APPWRITE_DB.databaseId,
+        tableId: APPWRITE_DB.tables.leads,
+        queries: [
+          Query.greaterThanEqual('$createdAt', startISO),
+          Query.lessThanEqual('$createdAt', endISO),
+        ],
+      }),
+      // Get clients to deactivate
+      db.listRows(APPWRITE_DB.databaseId, 'clients', [
+        Query.greaterThanEqual('startDate', startISO.slice(0, 10)),
+        Query.lessThanEqual('startDate', endISO.slice(0, 10)),
+      ]),
+      // Get invoices to close
+      db.listRows(APPWRITE_DB.databaseId, 'invoices', [
+        Query.greaterThanEqual('issueDate', startISO.slice(0, 10)),
+        Query.lessThanEqual('issueDate', endISO.slice(0, 10)),
+      ]),
+      // Get expenses to lock
+      db.listRows(APPWRITE_DB.databaseId, 'expenses', [
+        Query.greaterThanEqual('date', startISO.slice(0, 10)),
+        Query.lessThanEqual('date', endISO.slice(0, 10)),
+      ]),
+    ]);
+
+    // Update all records in parallel
+    await Promise.all([
+      // Update leads
+      ...leads.rows.map((doc) =>
+        db.updateRow(APPWRITE_DB.databaseId, 'leads', doc.$id, {
+          status: 'archived',
+        })
+      ),
+      // Update clients
+      ...clients.rows.map((doc) =>
+        db.updateRow(APPWRITE_DB.databaseId, 'clients', doc.$id, {
+          status: 'inactive',
+        })
+      ),
+      // Update invoices
+      ...invoices.rows.map((doc) =>
+        db.updateRow(APPWRITE_DB.databaseId, 'invoices', doc.$id, {
+          status: 'closed',
+        })
+      ),
+      // Update expenses
+      ...expenses.rows.map((doc) =>
+        db.updateRow(APPWRITE_DB.databaseId, 'expenses', doc.$id, {
+          locked: true,
+        })
+      ),
+    ]);
+
+    // 4. Update or create quarter closure record
+    const summaryText =
+      `Clients: ${quarterData.counts.clients} (${quarterData.counts.newClients} new), ` +
+      `Leads: ${quarterData.counts.leads} (${quarterData.counts.convertedLeads} converted), ` +
+      `Invoices: ${quarterData.counts.invoices} (${quarterData.counts.paidInvoices} paid), ` +
+      `Revenue: PKR ${quarterData.totalRevenue}, ` +
+      `Expenses: PKR ${quarterData.totalExpenses}, ` +
+      `Salaries: PKR ${quarterData.totalSalaries}, ` +
+      `Profit: PKR ${quarterData.netProfit}`;
+
+    // First get or create the quarter to ensure it exists
+    const quarterRecord = await createQuarter(year, quarter);
+    
+    // Update the quarter with closure details
+    const quarterDataToUpdate = {
+      status: 'closed',
+      closedDate: new Date().toISOString(),
+      totalRevenue: quarterData.totalRevenue,
+      totalExpenses: quarterData.totalExpenses,
+      totalSalaries: quarterData.totalSalaries,
+      netProfit: quarterData.netProfit,
+      profitMargin: quarterData.profitMargin,
+      cashOnHand,
+      withdrawalAmount,
+      remainingBalance: cashOnHand - withdrawalAmount,
+      closedBy: 'system',
+      summary: summaryText,
+      $updatedAt: new Date().toISOString(),
+    };
+
+    // Update the existing quarter record
+    const quarterClosure = await db.updateRow({
       databaseId: APPWRITE_DB.databaseId,
       tableId: APPWRITE_DB.tables.quarters,
-      data: {
-        quarterId,
-        quarter,
-        year,
-        status: 'closed',
-        closedDate: new Date().toISOString(),
-        totalRevenue: quarterData.totalRevenue,
-        totalExpenses: quarterData.totalExpenses,
-        totalSalaries: quarterData.totalSalaries,
-        netProfit: quarterData.netProfit,
-        profitMargin: quarterData.profitMargin,
-        cashOnHand,
-        withdrawalAmount,
-        remainingBalance: cashOnHand - withdrawalAmount,
-        closedBy: 'system',
-        reportGenerated: true,
-        summary: summaryText, // String instead of JSON object
-      },
-      rowId: ID.unique(),
+      rowId: quarterRecord.$id,
+      data: quarterDataToUpdate
     });
 
-    console.log(`Quarter ${quarterId} closed with withdrawal of PKR ${withdrawalAmount}`);
-    console.log(`Remaining balance: PKR ${cashOnHand - withdrawalAmount}`);
-    
+    // 5. If there's a remaining balance, create a starting balance for next quarter
+    const remainingBalance = cashOnHand - withdrawalAmount;
+    if (remainingBalance > 0) {
+      const nextQuarter = quarter === 4 ? 1 : ((quarter + 1) as 1 | 2 | 3 | 4);
+      const nextYear = quarter === 4 ? year + 1 : year;
+      const nextQuarterId = `q${nextQuarter}-${nextYear}`;
+
+      await db.createRow({
+        databaseId: APPWRITE_DB.databaseId,
+        tableId: APPWRITE_DB.tables.expenses,
+        data: {
+          date: new Date().toISOString().split('T')[0],
+          description: `Opening balance from Q${quarter}-${year}`,
+          amount: remainingBalance,
+          category: 'opening-balance',
+          paymentMethod: 'bank-transfer',
+          status: 'completed',
+          notes: `Carried forward from Q${quarter}-${year}`,
+          locked: true,
+        },
+        rowId: ID.unique(),
+      });
+    }
+
     return {
       success: true,
       quarterId,
       closedDate: new Date().toISOString(),
       withdrawalAmount,
-      remainingBalance: cashOnHand - withdrawalAmount,
+      remainingBalance,
       reportGenerated: true,
       quarterClosureId: quarterClosure.$id,
     };
   } catch (error) {
-    console.error('Error storing quarter closure:', error);
-    
-    // Still return success but log the storage error
-    console.log(`Quarter ${quarterId} closed with withdrawal of PKR ${withdrawalAmount} (not stored in DB)`);
-    console.log(`Remaining balance: PKR ${cashOnHand - withdrawalAmount}`);
-    
-    return {
-      success: true,
-      quarterId,
-      closedDate: new Date().toISOString(),
-      withdrawalAmount,
-      remainingBalance: cashOnHand - withdrawalAmount,
-      reportGenerated: true,
-      storageError: error instanceof Error ? error.message : 'Failed to store closure data',
-    };
+    console.error('Error closing quarter:', error);
+    throw new Error(
+      `Failed to close quarter: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }

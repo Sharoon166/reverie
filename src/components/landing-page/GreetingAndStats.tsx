@@ -20,7 +20,7 @@ export default function GreetingAndStats() {
     employees: 0,
     projects: 0,
     hirings: 0,
-    loading: true
+    loading: true,
   });
 
   useEffect(() => {
@@ -32,17 +32,18 @@ export default function GreetingAndStats() {
           db.listRows({
             databaseId: APPWRITE_DB.databaseId,
             tableId: APPWRITE_DB.tables.employees,
-            queries: [Query.limit(500)] // Adjust limit as needed
-          })
+            queries: [Query.limit(500)], // Adjust limit as needed
+          }),
         ]);
-        console.log(dashboardStats)
+        console.log(dashboardStats);
 
         // Calculate current month and last month revenue
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
         const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+        const lastMonthYear =
+          currentMonth === 0 ? currentYear - 1 : currentYear;
         const monthStr = String(currentMonth + 1).padStart(2, '0');
         const lastMonthStr = String(lastMonth + 1).padStart(2, '0');
 
@@ -54,40 +55,51 @@ export default function GreetingAndStats() {
             queries: [
               Query.limit(1000), // Adjust based on your data size
               Query.greaterThanEqual('month', `${currentYear}-${monthStr}`),
-              Query.lessThan('month', `${currentYear}-${String(currentMonth + 2).padStart(2, '0')}`)
-            ]
+              Query.lessThan(
+                'month',
+                `${currentYear}-${String(currentMonth + 2).padStart(2, '0')}`
+              ),
+            ],
           }),
           db.listRows({
             databaseId: APPWRITE_DB.databaseId,
             tableId: APPWRITE_DB.tables.salary_payments,
             queries: [
               Query.limit(1000), // Adjust based on your data size
-              Query.greaterThanEqual('month', `${lastMonthYear}-${lastMonthStr}`),
-              Query.lessThan('month', `${lastMonthYear}-${String(lastMonth + 2).padStart(2, '0')}`)
-            ]
-          })
+              Query.greaterThanEqual(
+                'month',
+                `${lastMonthYear}-${lastMonthStr}`
+              ),
+              Query.lessThan(
+                'month',
+                `${lastMonthYear}-${String(lastMonth + 2).padStart(2, '0')}`
+              ),
+            ],
+          }),
         ]);
 
         // Calculate total salaries for current and last month
         const currentMonthRevenue = salaryPaymentsRes.rows.reduce(
-          (sum, payment) => sum + (parseFloat(payment.netAmount) || 0), 0 as number
+          (sum, payment) => sum + (parseFloat(payment.netAmount) || 0),
+          0 as number
         );
 
         const lastMonthRevenue = lastMonthPaymentsRes.rows.reduce(
-          (sum, payment) => sum + (parseFloat(payment.netAmount) || 0), 0 as number
+          (sum, payment) => sum + (parseFloat(payment.netAmount) || 0),
+          0 as number
         );
 
         // Get hiring data (employees created in the last 30 days)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
+
         const newHiresRes = await db.listRows({
           databaseId: APPWRITE_DB.databaseId,
           tableId: APPWRITE_DB.tables.employees,
           queries: [
             Query.greaterThanEqual('$createdAt', thirtyDaysAgo.toISOString()),
-            Query.limit(100)
-          ]
+            Query.limit(100),
+          ],
         });
 
         // Get project count (if you have a projects table)
@@ -96,7 +108,7 @@ export default function GreetingAndStats() {
           const projectsRes = await db.listRows({
             databaseId: APPWRITE_DB.databaseId,
             tableId: APPWRITE_DB.tables.projects, // Make sure this table exists
-            queries: [Query.limit(1)]
+            queries: [Query.limit(1)],
           });
           projectCount = projectsRes.total;
         } catch (error) {
@@ -107,43 +119,46 @@ export default function GreetingAndStats() {
         setStats({
           revenue: {
             current: currentMonthRevenue,
-            lastMonth: lastMonthRevenue
+            lastMonth: lastMonthRevenue,
           },
           employees: employeesRes.total,
           projects: projectCount,
           hirings: newHiresRes.total,
-          loading: false
+          loading: false,
         });
       } catch (error) {
         console.error('Error fetching dashboard stats:', error);
-        setStats(prev => ({ ...prev, loading: false }));
+        setStats((prev) => ({ ...prev, loading: false }));
       }
     };
 
     fetchData();
   }, []);
 
-  const growthPercentage = stats.revenue.lastMonth > 0 
-    ? ((stats.revenue.current - stats.revenue.lastMonth) / stats.revenue.lastMonth) * 100 
-    : 0;
+  const growthPercentage =
+    stats.revenue.lastMonth > 0
+      ? ((stats.revenue.current - stats.revenue.lastMonth) /
+          stats.revenue.lastMonth) *
+        100
+      : 0;
 
   const capsuleStats = [
-    { 
-      label: 'Revenue (MTD)', 
-      value: new Intl.NumberFormat('en-PK', { 
-        style: 'currency', 
+    {
+      label: 'Revenue (MTD)',
+      value: new Intl.NumberFormat('en-PK', {
+        style: 'currency',
         currency: 'PKR',
-        maximumFractionDigits: 0
-      }).format(stats.revenue.current) 
+        maximumFractionDigits: 0,
+      }).format(stats.revenue.current),
     },
-    { 
-      label: 'Growth', 
+    {
+      label: 'Growth',
       value: `${growthPercentage > 0 ? '+' : ''}${growthPercentage.toFixed(1)}%`,
-      isPositive: growthPercentage >= 0
+      isPositive: growthPercentage >= 0,
     },
-    { 
-      label: 'Satisfaction', 
-      value: '92%' // This would come from a feedback/ratings API
+    {
+      label: 'Satisfaction',
+      value: '92%', // This would come from a feedback/ratings API
     },
   ];
 
@@ -157,17 +172,17 @@ export default function GreetingAndStats() {
 
   return (
     <div className="space-y-8">
-      <div className='space-y-1'>
+      <div className="space-y-1">
         <h2 className="text-4xl font-light">Welcome in, Ali</h2>
         <MotivationRotator
           messages={[
-            'Take a deep breath and trust in Allah\'s plan.',
+            "Take a deep breath and trust in Allah's plan.",
             'Success is a journey—remember to find peace along the way.',
             'Lead with kindness, gratitude, and integrity.',
             'May your decisions bring barakah and stay away from anything haram.',
             'Balance ambition with reflection and prayer.',
             'Your well-being matters as much as your achievements.',
-            'Let every day begin and end with thankfulness.'
+            'Let every day begin and end with thankfulness.',
           ]}
           textClassName="text-sm text-muted-foreground"
         />

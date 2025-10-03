@@ -19,9 +19,16 @@ export function formatPakistaniPhoneNumber(phone: string): string {
 }
 
 export function formatPakistaniCurrency(amount: number) {
-  return amount.toLocaleString('en-US', {
+  return amount.toLocaleString('en-PK', {
     style: 'currency',
     currency: 'PKR',
+    currencyDisplay: 'narrowSymbol',
+    notation: amount >= 1_000_000 ? 'compact' : 'standard', // 10 Lakh = 1 Million
+    compactDisplay: 'short', // shows 1M, 2B
+    numberingSystem: 'latn',
+    useGrouping: true,
+    minimumFractionDigits: amount >= 1_000_000 ? 1 : 0, // force 1 decimal when compact
+    maximumFractionDigits: 2, // cap at 1 decimal
     roundingMode: 'floor',
   });
 }

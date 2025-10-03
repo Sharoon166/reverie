@@ -11,8 +11,7 @@ type ProfileCardProps = {
 
 export default function ProfileCard({
   user = {
-    avatar:
-      '/employees/CEO.jpg',
+    avatar: '/employees/CEO.jpg',
     name: 'Ali',
     title: 'CEO@synctom',
   },
@@ -20,12 +19,7 @@ export default function ProfileCard({
   return (
     <div className="relative h-full rounded-3xl overflow-hidden shadow-2xl bg-white">
       {/* Background Image */}
-      <Image
-        src={user.avatar}
-        alt={user.name}
-        fill
-        className="object-cover"
-      />
+      <Image src={user.avatar} alt={user.name} fill className="object-cover" />
 
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />

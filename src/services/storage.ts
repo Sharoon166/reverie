@@ -1,6 +1,4 @@
-import { storage, ID} from "@/lib/appwrite"
-
-
+import { storage, ID } from '@/lib/appwrite';
 
 /**
  * Rename a File object before upload.

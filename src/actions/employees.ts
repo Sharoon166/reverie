@@ -2,7 +2,12 @@
 
 import { APPWRITE_DB, db, ID } from '@/lib/appwrite';
 import type { EmployeeFormValues } from '@/components/forms';
-import type { AttendanceRecord, BonusRecord, Employee, SalaryPayment } from '@/types';
+import type {
+  AttendanceRecord,
+  BonusRecord,
+  Employee,
+  SalaryPayment,
+} from '@/types';
 import { Query } from 'appwrite';
 import { revalidatePath } from 'next/cache';
 import { deleteFile, uploadFile } from '@/services/storage';
@@ -33,7 +38,7 @@ export async function getAllEmployees() {
           const salaryRes = await db.listRows({
             databaseId: APPWRITE_DB.databaseId,
             tableId: APPWRITE_DB.tables.salary_payments,
-            queries: [Query.equal("employee", emp.$id)],
+            queries: [Query.equal('employee', emp.$id)],
           });
 
           const salaryPayments = salaryRes.rows as unknown as SalaryPayment[];
@@ -54,7 +59,7 @@ export async function getAllEmployees() {
 
     return employeesWithPayments;
   } catch (error) {
-    console.error("Error in getAllEmployees:", error);
+    console.error('Error in getAllEmployees:', error);
     throw error;
   }
 }
@@ -62,14 +67,14 @@ export async function getAllEmployees() {
 export async function getEmployeeFullProfile(cnic: string) {
   try {
     if (!cnic) {
-      throw new Error("CNIC is required to fetch employee profile.");
+      throw new Error('CNIC is required to fetch employee profile.');
     }
 
     // Step 1: Fetch Employee
     const employeeRes = await db.listRows({
       databaseId: APPWRITE_DB.databaseId,
       tableId: APPWRITE_DB.tables.employees,
-      queries: [Query.equal("cnic", cnic)],
+      queries: [Query.equal('cnic', cnic)],
     });
 
     const employee = employeeRes.rows.at(0) as unknown as ModifiedEmployee;
@@ -83,11 +88,14 @@ export async function getEmployeeFullProfile(cnic: string) {
       const attendanceRes = await db.listRows({
         databaseId: APPWRITE_DB.databaseId,
         tableId: APPWRITE_DB.tables.attendance,
-        queries: [Query.equal("employee", employee.$id)],
+        queries: [Query.equal('employee', employee.$id)],
       });
       attendanceRecords = attendanceRes.rows as unknown as AttendanceRecord[];
     } catch (err) {
-      console.warn(`Failed to fetch attendance for employee ${employee.$id}`, err);
+      console.warn(
+        `Failed to fetch attendance for employee ${employee.$id}`,
+        err
+      );
     }
 
     // Step 3: Fetch Salary Payments
@@ -96,7 +104,7 @@ export async function getEmployeeFullProfile(cnic: string) {
       const salaryRes = await db.listRows({
         databaseId: APPWRITE_DB.databaseId,
         tableId: APPWRITE_DB.tables.salary_payments,
-        queries: [Query.equal("employee", employee.$id)],
+        queries: [Query.equal('employee', employee.$id)],
       });
       salaryPayments = salaryRes.rows as unknown as SalaryPayment[];
 
@@ -109,7 +117,7 @@ export async function getEmployeeFullProfile(cnic: string) {
         const bonusRes = await db.listRows({
           databaseId: APPWRITE_DB.databaseId,
           tableId: APPWRITE_DB.tables.bonus,
-          queries: [Query.equal("$id", bonusIds)],
+          queries: [Query.equal('$id', bonusIds)],
         });
 
         const bonusMap = new Map(
@@ -117,7 +125,8 @@ export async function getEmployeeFullProfile(cnic: string) {
         );
 
         salaryPayments = salaryPayments.map((sp) => {
-          const bonusKey = typeof sp.bonus === 'string' ? sp.bonus : sp.bonus?.id;
+          const bonusKey =
+            typeof sp.bonus === 'string' ? sp.bonus : sp.bonus?.id;
           return {
             ...sp,
             bonus: bonusKey ? (bonusMap.get(bonusKey) ?? null) : null,
@@ -125,7 +134,10 @@ export async function getEmployeeFullProfile(cnic: string) {
         });
       }
     } catch (err) {
-      console.warn(`Failed to fetch salary payments for employee ${employee.$id}`, err);
+      console.warn(
+        `Failed to fetch salary payments for employee ${employee.$id}`,
+        err
+      );
     }
 
     // Final aggregated response
@@ -135,18 +147,16 @@ export async function getEmployeeFullProfile(cnic: string) {
       salaryPayments,
     };
   } catch (error) {
-    console.error("Error in getEmployeeFullProfile:", error);
+    console.error('Error in getEmployeeFullProfile:', error);
     throw error;
   }
 }
 
-
 export async function createEmployee(employee: EmployeeFormValues) {
-
   const { avatar, ...employeeData } = employee;
   let profileImage = '';
   if (avatar) {
-    const uploaded = await uploadFile(APPWRITE_DB.buckets.reverie, avatar)
+    const uploaded = await uploadFile(APPWRITE_DB.buckets.reverie, avatar);
     profileImage = uploaded.$id || '';
   }
 
@@ -156,7 +166,7 @@ export async function createEmployee(employee: EmployeeFormValues) {
     data: { ...employeeData, profileImage },
     rowId: ID.unique(),
   });
-  console.log(emp)
+  console.log(emp);
   revalidatePath('/employees');
 }
 
@@ -180,7 +190,7 @@ export async function updateEmployee(
     if (avatar) {
       if (emp.profileImage) {
         try {
-          await deleteFile(APPWRITE_DB.buckets.reverie, emp.profileImage)
+          await deleteFile(APPWRITE_DB.buckets.reverie, emp.profileImage);
         } catch (error) {
           console.warn('Failed to delete old profile image:', error);
         }
@@ -203,7 +213,7 @@ export async function updateEmployee(
     revalidatePath(`/employees/${id}`);
   } catch (error) {
     console.error('Error updating employee:', error);
-    throw error
+    throw error;
   }
 }
 
@@ -215,98 +225,140 @@ export async function deleteEmployee(id: string) {
       tableId: APPWRITE_DB.tables.employees,
       rowId: id,
     });
-    revalidatePath("/employees")
-    revalidatePath(`/employees/${id}`)
+    revalidatePath('/employees');
+    revalidatePath(`/employees/${id}`);
   } catch (error) {
     console.error(error);
     throw error;
   }
 }
 
+export async function updateSalaryPayment(
+  paymentId: string,
+  data: {
+    amount?: number;
+    bonus?: { amount: number } | null;
+    paidDate?: string;
+  }
+) {
+  try {
+    // Get the existing payment
+    const existingPayment = await db.getRow({
+      databaseId: APPWRITE_DB.databaseId,
+      tableId: APPWRITE_DB.tables.salary_payments,
+      rowId: paymentId,
+    });
 
-// export async function markSalaryPaid(
-//   employeeId: string,
-//   { month, bonusAmount }: { month: string; bonusAmount?: number }
-// ) {
-//   try {
-//     // 1. Check if salary payment already exists for this month
-//     const existing = await db.listRows({
-//       databaseId: APPWRITE_DB.databaseId,
-//       tableId: APPWRITE_DB.tables.salary_payments,
-//       queries: [
-//         Query.equal("employee", employeeId),
-//         Query.equal("month", month),
-//       ],
-//     });
+    if (!existingPayment) {
+      throw new Error('Payment not found');
+    }
 
-//     if (existing.rows.length > 0) {
-//       throw new Error(`Salary for ${month} already exists for this employee.`);
-//     }
+    let netAmount = data.amount ?? existingPayment.amount;
+    let bonusRecord: BonusRecord | null = null;
+    let bonusId = existingPayment.bonus;
 
-//     // 2. Create salary payment
-//     const salaryPayment = await db.createRow({
-//       databaseId: APPWRITE_DB.databaseId,
-//       tableId: APPWRITE_DB.tables.salary_payments,
-//       rowId: ID.unique(),
-//       data: {
-//         employee: employeeId,
-//         month,
-//         amount: 0, // will calculate below
-//         paidDate: new Date().toISOString(),
-//         status: "paid",
-//         bonus: null,
-//       },
-//     });
+    // Handle bonus update
+    if (data.bonus !== undefined) {
+      if (data.bonus) {
+        // Update or create bonus
+        if (bonusId) {
+          bonusRecord = (await db.updateRow({
+            databaseId: APPWRITE_DB.databaseId,
+            tableId: APPWRITE_DB.tables.bonus,
+            rowId: bonusId,
+            data: {
+              amount: data.bonus.amount,
+              updatedAt: new Date().toISOString(),
+            },
+          })) as unknown as BonusRecord;
+        } else {
+          bonusRecord = (await db.createRow({
+            databaseId: APPWRITE_DB.databaseId,
+            tableId: APPWRITE_DB.tables.bonus,
+            rowId: ID.unique(),
+            data: {
+              amount: data.bonus.amount,
+              reason: 'Performance bonus',
+              date: new Date().toISOString(),
+              salaryPayment: paymentId,
+            },
+          })) as unknown as BonusRecord;
+          bonusId = bonusRecord.$id;
+        }
+        netAmount += data.bonus.amount;
+      } else if (bonusId) {
+        // Remove bonus if it exists but no bonus is provided
+        await db.deleteRow({
+          databaseId: APPWRITE_DB.databaseId,
+          tableId: APPWRITE_DB.tables.bonus,
+          rowId: bonusId,
+        });
+        bonusId = null;
+        // Recalculate net amount without bonus
+        netAmount =
+          data.amount ??
+          existingPayment.amount - (existingPayment.bonus?.amount || 0);
+      }
+    }
 
-//     // 3. Calculate net amount (salary + bonus - deductions)
-//     let netAmount = 0;
-//     let bonusRecord: BonusRecord | null = null;
+    // Update the salary payment
+    const updatedPayment = await db.updateRow({
+      databaseId: APPWRITE_DB.databaseId,
+      tableId: APPWRITE_DB.tables.salary_payments,
+      rowId: paymentId,
+      data: {
+        ...(data.amount !== undefined && { amount: data.amount }),
+        ...(data.paidDate && { paidDate: data.paidDate }),
+        bonus: bonusId,
+        netAmount,
+        updatedAt: new Date().toISOString(),
+      },
+    });
 
-//     // fetch employee base salary
-//     const employee = await db.getRow({
-//       databaseId: APPWRITE_DB.databaseId,
-//       tableId: APPWRITE_DB.tables.employees,
-//       rowId: employeeId,
-//     });
+    revalidatePath('/employees');
+    return { ...updatedPayment, bonus: bonusRecord };
+  } catch (error) {
+    console.error('Error updating salary payment:', error);
+    throw error;
+  }
+}
 
-//     netAmount = employee.salary;
+export async function deleteSalaryPayment(paymentId: string) {
+  try {
+    // First, delete any associated bonus
+    const payment = await db.getRow({
+      databaseId: APPWRITE_DB.databaseId,
+      tableId: APPWRITE_DB.tables.salary_payments,
+      rowId: paymentId,
+    });
 
-//     if (bonusAmount && bonusAmount > 0) {
-//       // create bonus row
-//       const bonus = await db.createRow({
-//         databaseId: APPWRITE_DB.databaseId,
-//         tableId: APPWRITE_DB.tables.bonus,
-//         rowId: ID.unique(),
-//         data: {
-//           amount: bonusAmount,
-//           reason: "Monthly performance bonus",
-//           date: new Date().toISOString(),
-//           salaryPayment: salaryPayment.$id,
-//         },
-//       });
+    if (payment?.bonus) {
+      try {
+        await db.deleteRow({
+          databaseId: APPWRITE_DB.databaseId,
+          tableId: APPWRITE_DB.tables.bonus,
+          rowId: payment.bonus,
+        });
+      } catch (error) {
+        console.warn('Error deleting associated bonus:', error);
+        // Continue with payment deletion even if bonus deletion fails
+      }
+    }
 
-//       bonusRecord = bonus as unknown as BonusRecord;
-//       netAmount += bonusAmount;
-//     }
+    // Then delete the payment
+    await db.deleteRow({
+      databaseId: APPWRITE_DB.databaseId,
+      tableId: APPWRITE_DB.tables.salary_payments,
+      rowId: paymentId,
+    });
 
-//     // update salary payment with final netAmount + bonus link
-//     await db.updateRow({
-//       databaseId: APPWRITE_DB.databaseId,
-//       tableId: APPWRITE_DB.tables.salary_payments,
-//       rowId: salaryPayment.$id,
-//       data: {
-//         amount: employee.salary,
-//         netAmount,
-//         bonus: bonusRecord ? bonusRecord.id : null,
-//       },
-//     });
-
-//     return { ...salaryPayment, netAmount, bonus: bonusRecord };
-//   } catch (err) {
-//     console.error("Error marking salary paid:", err);
-//     throw err;
-//   }
-// }
+    revalidatePath('/employees');
+    return true;
+  } catch (error) {
+    console.error('Error deleting salary payment:', error);
+    throw error;
+  }
+}
 
 export async function markSalaryPaid(
   employeeId: string,
@@ -318,8 +370,8 @@ export async function markSalaryPaid(
       databaseId: APPWRITE_DB.databaseId,
       tableId: APPWRITE_DB.tables.salary_payments,
       queries: [
-        Query.equal("employee", employeeId),
-        Query.equal("month", month),
+        Query.equal('employee', employeeId),
+        Query.equal('month', month),
       ],
     });
 
@@ -374,7 +426,7 @@ export async function markSalaryPaid(
           rowId: existingBonusId,
           data: {
             amount: bonusAmount,
-            reason: "Monthly performance bonus (updated)",
+            reason: 'Monthly performance bonus (updated)',
             date: new Date().toISOString(),
           },
         });
@@ -387,7 +439,7 @@ export async function markSalaryPaid(
           rowId: ID.unique(),
           data: {
             amount: bonusAmount,
-            reason: "Monthly performance bonus",
+            reason: 'Monthly performance bonus',
             date: new Date().toISOString(),
             salaryPayment: salaryPayment.$id,
           },
@@ -418,9 +470,10 @@ export async function markSalaryPaid(
       },
     });
 
+    revalidatePath('/employees');
     return { ...updatedSalaryPayment, netAmount, bonus: bonusRecord };
-  } catch (err) {
-    console.error("Error marking salary paid:", err);
-    throw err;
+  } catch (error) {
+    console.error('Error marking salary as paid:', error);
+    throw error;
   }
 }

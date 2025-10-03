@@ -31,7 +31,7 @@ import {
 import { PhoneInput } from '@/components/ui/phone-input';
 import {
   CalendarIcon,
-  DollarSign,
+  Coins,
   FileText,
   User,
   Building2,
@@ -45,7 +45,15 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Lead } from '@/types/lead';
-import { CURRENCIES, Currency, LEAD_SOURCES, LEAD_STATUS, LeadSource, LeadStatus, PRIORITY_LEVELS } from '@/lib/constants';
+import {
+  CURRENCIES,
+  Currency,
+  LEAD_SOURCES,
+  LEAD_STATUS,
+  LeadSource,
+  LeadStatus,
+  PRIORITY_LEVELS,
+} from '@/lib/constants';
 
 const leadFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -90,12 +98,14 @@ export function LeadForm({
       phone: initialData?.phone || '',
       source: (initialData?.source as LeadSource) || 'website',
       status: (initialData?.status as LeadStatus) || 'new',
-      estimatedValue: (initialData)?.estimatedValue ?? undefined,
+      priority:
+        (initialData?.priority as (typeof PRIORITY_LEVELS)[number]) || 'medium',
+      estimatedValue: initialData?.estimatedValue ?? undefined,
       currency: (initialData?.currency as Currency) || 'PKR',
-      nextFollowup: (initialData)?.nextFollowup
-        ? new Date((initialData).nextFollowup)
+      nextFollowup: initialData?.nextFollowup
+        ? new Date(initialData.nextFollowup)
         : undefined,
-      assignedTo: (initialData)?.assignedTo || '',
+      assignedTo: initialData?.assignedTo || '',
       notes: initialData?.notes || '',
     },
   });
@@ -200,7 +210,7 @@ export function LeadForm({
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="Phone number"
-                    className='w-full'
+                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -318,7 +328,10 @@ export function LeadForm({
                   Assigned To
                 </FormLabel>
                 {employees && employees.length > 0 ? (
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select assignee" />
@@ -326,13 +339,18 @@ export function LeadForm({
                     </FormControl>
                     <SelectContent>
                       {employees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 ) : (
                   <FormControl>
-                    <Input placeholder="Team member assigned to this lead" {...field} />
+                    <Input
+                      placeholder="Team member assigned to this lead"
+                      {...field}
+                    />
                   </FormControl>
                 )}
                 <FormDescription>
@@ -358,7 +376,7 @@ export function LeadForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
+                    <Coins className="h-4 w-4" />
                     Estimated Value
                   </FormLabel>
                   <FormControl>
@@ -444,7 +462,6 @@ export function LeadForm({
                     selected={field.value}
                     onSelect={field.onChange}
                     disabled={(date) => date < new Date()}
-
                   />
                 </PopoverContent>
               </Popover>

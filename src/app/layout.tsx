@@ -27,11 +27,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             'var(--font-quando), "Geist Sans", "Segoe UI", Arial, sans-serif',
         }}
       >
-        <div className='max-w-[85rem] mx-auto p-4 sm:px-8'>
-          <Header />
-          <AuthGate>
-            {children}
-          </AuthGate>
+        <div className="max-w-[85rem] mx-auto p-4 sm:px-8">
+          <AuthGate>{children}</AuthGate>
         </div>
         <Toaster richColors position="bottom-right" />
       </body>

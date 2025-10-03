@@ -1,7 +1,7 @@
 // KPI TypeScript types/interfaces
 
-export type KPIPeriod = "weekly" | "monthly" | "quarterly" | "yearly";
-export type KPIStatus = "on track" | "behind" | "exceeded" | "at risk";
+export type KPIPeriod = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+export type KPIStatus = 'on track' | 'behind' | 'exceeded' | 'at risk';
 
 export interface BaseKPI {
   id: string;
@@ -17,31 +17,31 @@ export interface BaseKPI {
 
 // Revenue KPIs
 export interface RetainerRevenueKPI extends BaseKPI {
-  type: "retainer_revenue";
+  type: 'retainer_revenue';
   monthlyRetainerTotal: number;
-  currency: "PKR";
+  currency: 'PKR';
   clientCount: number;
 }
 
 export interface QuarterlyRevenueKPI extends BaseKPI {
-  type: "quarterly_revenue";
+  type: 'quarterly_revenue';
   quarter: string; // e.g., "Q4-2025"
   targetRevenue: number;
   closedRevenue: number;
-  currency: "PKR";
+  currency: 'PKR';
   projectsAdded: number;
 }
 
 // Client KPIs
 export interface HighValueClientsKPI extends BaseKPI {
-  type: "high_value_clients";
+  type: 'high_value_clients';
   clientsWithMultipleProjects: number;
   totalClients: number;
   percentage: number;
 }
 
 export interface ClientAcquisitionKPI extends BaseKPI {
-  type: "client_acquisition";
+  type: 'client_acquisition';
   quarter: string;
   targetClients: number;
   acquiredClients: number;
@@ -50,7 +50,7 @@ export interface ClientAcquisitionKPI extends BaseKPI {
 
 // Lead & Sales KPIs
 export interface LeadsAddedKPI extends BaseKPI {
-  type: "leads_added";
+  type: 'leads_added';
   weeklyTarget?: number;
   quarterlyTarget?: number;
   weeklyCurrent?: number;
@@ -58,7 +58,7 @@ export interface LeadsAddedKPI extends BaseKPI {
 }
 
 export interface OutreachMessagesKPI extends BaseKPI {
-  type: "outreach_messages";
+  type: 'outreach_messages';
   weeklyTarget?: number;
   quarterlyTarget?: number;
   weeklyCurrent?: number;
@@ -66,7 +66,7 @@ export interface OutreachMessagesKPI extends BaseKPI {
 }
 
 export interface MeetingsBookedKPI extends BaseKPI {
-  type: "meetings_booked";
+  type: 'meetings_booked';
   weeklyTarget?: number;
   quarterlyTarget?: number;
   weeklyCurrent?: number;
@@ -74,7 +74,7 @@ export interface MeetingsBookedKPI extends BaseKPI {
 }
 
 export interface ProposalsSentKPI extends BaseKPI {
-  type: "proposals_sent";
+  type: 'proposals_sent';
   weeklyTarget?: number;
   quarterlyTarget?: number;
   weeklyCurrent?: number;
@@ -82,7 +82,7 @@ export interface ProposalsSentKPI extends BaseKPI {
 }
 
 export interface SalesConversionKPI extends BaseKPI {
-  type: "sales_conversion";
+  type: 'sales_conversion';
   leadsQualified: number;
   leadsConverted: number;
   conversionRate: number; // percentage
@@ -90,7 +90,7 @@ export interface SalesConversionKPI extends BaseKPI {
 
 // Partnership KPIs
 export interface AgencyPartnershipsKPI extends BaseKPI {
-  type: "agency_partnerships";
+  type: 'agency_partnerships';
   quarter: string;
   targetPartners: number;
   currentPartners: number;
@@ -100,7 +100,7 @@ export interface AgencyPartnershipsKPI extends BaseKPI {
 
 // Employee KPIs
 export interface EmployeeOfMonthKPI extends BaseKPI {
-  type: "employee_of_month";
+  type: 'employee_of_month';
   month: string; // YYYY-MM
   winnerId?: string;
   winnerName?: string;
@@ -110,11 +110,11 @@ export interface EmployeeOfMonthKPI extends BaseKPI {
 }
 
 export interface HiringKPI extends BaseKPI {
-  type: "hiring";
+  type: 'hiring';
   positionsNeeded: Array<{
     position: string;
     department: string;
-    priority: "high" | "medium" | "low";
+    priority: 'high' | 'medium' | 'low';
     targetFillDate?: string;
   }>;
   positionsFilled: number;
@@ -122,57 +122,57 @@ export interface HiringKPI extends BaseKPI {
 
 // Financial KPIs
 export interface CashOnHandKPI extends BaseKPI {
-  type: "cash_on_hand";
+  type: 'cash_on_hand';
   currentCash: number;
-  currency: "PKR";
+  currency: 'PKR';
   minimumThreshold: number;
   bankBalance: number;
   cashBalance: number;
 }
 
 export interface AccountsReceivableKPI extends BaseKPI {
-  type: "accounts_receivable";
+  type: 'accounts_receivable';
   totalOutstanding: number;
-  currency: "PKR";
+  currency: 'PKR';
   overdueAmount: number;
   currentAmount: number;
   clientCount: number;
 }
 
 export interface DSOKPI extends BaseKPI {
-  type: "dso"; // Days Sales Outstanding
+  type: 'dso'; // Days Sales Outstanding
   averageDays: number;
   targetDays: number;
-  trend: "improving" | "worsening" | "stable";
+  trend: 'improving' | 'worsening' | 'stable';
 }
 
 export interface ExpenseTargetKPI extends BaseKPI {
-  type: "expense_target";
+  type: 'expense_target';
   quarter: string;
   targetExpense: number;
   actualExpense: number;
-  currency: "PKR";
+  currency: 'PKR';
   variancePercentage: number;
 }
 
 export interface EmployeeSalaryKPI extends BaseKPI {
-  type: "employee_salary";
+  type: 'employee_salary';
   totalEmployees: number;
   totalSalaryCost: number;
-  currency: "PKR";
+  currency: 'PKR';
   averageSalary: number;
   salaryBudget: number;
 }
 
 export interface ProfitLossKPI extends BaseKPI {
-  type: "profit_loss";
+  type: 'profit_loss';
   quarter: string;
   totalRevenue: number;
   totalExpenses: number;
   totalSalaries: number;
   netProfit: number;
   profitMarginPercentage: number;
-  currency: "PKR";
+  currency: 'PKR';
 }
 
 // Company Goals
@@ -182,8 +182,8 @@ export interface CompanyGoal {
   description?: string;
   isCompleted: boolean;
   targetDate?: string; // YYYY-MM-DD
-  priority: "high" | "medium" | "low";
-  category: "quality" | "growth" | "process" | "culture" | "financial";
+  priority: 'high' | 'medium' | 'low';
+  category: 'quality' | 'growth' | 'process' | 'culture' | 'financial';
   assignedTo?: string[];
   progressPercentage: number;
   createdAt: string; // ISO string
@@ -191,24 +191,24 @@ export interface CompanyGoal {
 }
 
 // Union type for all KPIs
-export type KPI = 
-  | RetainerRevenueKPI 
-  | QuarterlyRevenueKPI 
-  | HighValueClientsKPI 
-  | ClientAcquisitionKPI 
-  | LeadsAddedKPI 
-  | OutreachMessagesKPI 
-  | MeetingsBookedKPI 
-  | ProposalsSentKPI 
-  | SalesConversionKPI 
-  | AgencyPartnershipsKPI 
-  | EmployeeOfMonthKPI 
-  | HiringKPI 
-  | CashOnHandKPI 
-  | AccountsReceivableKPI 
-  | DSOKPI 
-  | ExpenseTargetKPI 
-  | EmployeeSalaryKPI 
+export type KPI =
+  | RetainerRevenueKPI
+  | QuarterlyRevenueKPI
+  | HighValueClientsKPI
+  | ClientAcquisitionKPI
+  | LeadsAddedKPI
+  | OutreachMessagesKPI
+  | MeetingsBookedKPI
+  | ProposalsSentKPI
+  | SalesConversionKPI
+  | AgencyPartnershipsKPI
+  | EmployeeOfMonthKPI
+  | HiringKPI
+  | CashOnHandKPI
+  | AccountsReceivableKPI
+  | DSOKPI
+  | ExpenseTargetKPI
+  | EmployeeSalaryKPI
   | ProfitLossKPI;
 
 export interface KPIDashboard {

@@ -1,12 +1,22 @@
 // Invoice TypeScript types/interfaces
 
-import { Currency } from "./client";
+import { Currency } from './client';
 
-export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue" | "cancelled" | "partially paid";
-export type ServiceType = "web development" | "app development" | "ai/ml solutions" | "retainers" | "consulting";
+export type InvoiceStatus =
+  | 'draft'
+  | 'sent'
+  | 'paid'
+  | 'overdue'
+  | 'cancelled'
+  | 'partially paid';
+export type ServiceType =
+  | 'web development'
+  | 'app development'
+  | 'ai/ml solutions'
+  | 'retainers'
+  | 'consulting';
 
 export interface Invoice {
-
   id: string;
   clientId: string; // relation to Client.id
   clientName: string;

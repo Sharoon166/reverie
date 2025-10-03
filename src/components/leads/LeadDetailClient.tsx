@@ -1,17 +1,39 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
-import type { Lead, LeadPriority, LeadSource, LeadStatus } from "@/types/lead";
-import { toast } from "sonner";
-import { ArrowLeft, Edit, Trash2, UserCheck, Mail, Phone, Building, Calendar, DollarSign, User, Target, Clock, FileText } from "lucide-react";
+import { useEffect, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
+import type { Lead, LeadPriority, LeadSource, LeadStatus } from '@/types/lead';
+import { toast } from 'sonner';
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  UserCheck,
+  Mail,
+  Phone,
+  Building,
+  Calendar,
+  Coins,
+  User,
+  Target,
+  Clock,
+  FileText,
+} from 'lucide-react';
 import { LEAD_SOURCES, LEAD_STATUS, PRIORITY_LEVELS } from '@/lib/constants';
-import { Currency } from "@/types";
+import { Currency } from '@/types';
+import { formatDate } from '@/lib/date-utils';
 
 export type LeadDetailClientProps = {
   initialLead: Lead;
@@ -19,36 +41,53 @@ export type LeadDetailClientProps = {
     update: (id: string, formData: FormData) => Promise<Lead>;
     remove: (id: string) => Promise<void>;
     convert: (id: string) => Promise<Lead>;
-  }
+  };
 };
 
 function getStatusColor(status: string) {
   const s = String(status).toLowerCase();
   switch (s) {
-    case 'new': return 'bg-blue-100 text-blue-800';
-    case 'contacted': return 'bg-yellow-100 text-yellow-800';
-    case 'qualified': return 'bg-green-100 text-green-800';
-    case 'proposal sent': return 'bg-purple-100 text-purple-800';
-    case 'negotiation': return 'bg-orange-100 text-orange-800';
-    case 'converted': return 'bg-emerald-100 text-emerald-800';
-    case 'lost': return 'bg-red-100 text-red-800';
-    case 'follow-up': return 'bg-blue-100 text-blue-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'new':
+      return 'bg-blue-100 text-blue-800';
+    case 'contacted':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'qualified':
+      return 'bg-green-100 text-green-800';
+    case 'proposal sent':
+      return 'bg-purple-100 text-purple-800';
+    case 'negotiation':
+      return 'bg-orange-100 text-orange-800';
+    case 'converted':
+      return 'bg-emerald-100 text-emerald-800';
+    case 'lost':
+      return 'bg-red-100 text-red-800';
+    case 'follow-up':
+      return 'bg-blue-100 text-blue-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
 }
 
 function getPriorityColor(priority: string) {
   const p = String(priority).toLowerCase();
   switch (p) {
-    case 'critical': return 'bg-red-100 text-red-800';
-    case 'high': return 'bg-orange-100 text-orange-800';
-    case 'medium': return 'bg-yellow-100 text-yellow-800';
-    case 'low': return 'bg-gray-100 text-gray-800';
-    default: return 'bg-gray-100 text-gray-800';
+    case 'critical':
+      return 'bg-red-100 text-red-800';
+    case 'high':
+      return 'bg-orange-100 text-orange-800';
+    case 'medium':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'low':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
   }
 }
 
-export default function LeadDetailClient({ initialLead, actions }: LeadDetailClientProps) {
+export default function LeadDetailClient({
+  initialLead,
+  actions,
+}: LeadDetailClientProps) {
   const router = useRouter();
   const [lead, setLead] = useState<Lead>(initialLead);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -56,13 +95,26 @@ export default function LeadDetailClient({ initialLead, actions }: LeadDetailCli
   const [isPending, startTransition] = useTransition();
   const isLoading = isPending;
 
-  useEffect(() => { setFormData(initialLead); }, [initialLead]);
+  useEffect(() => {
+    setFormData(initialLead);
+  }, [initialLead]);
 
-  const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString() : undefined;
+  const fmtDate = (d?: string | null) =>
+    d
+      ? new Date(d).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : undefined;
 
   function toFormData(data: Lead) {
     const fd = new FormData();
-    const map = (k: string, v: unknown) => { if (v !== undefined && v !== null) fd.set(k, String(v)); };
+    const map = (k: string, v: unknown) => {
+      if (v !== undefined && v !== null) fd.set(k, String(v));
+    };
     map('name', data.name);
     map('company', data.company);
     map('contact', data.contact);
@@ -86,7 +138,12 @@ export default function LeadDetailClient({ initialLead, actions }: LeadDetailCli
       try {
         const id = String(lead.id);
         const updatedRaw = await actions.update(id, toFormData(formData));
-        const updated = { ...(updatedRaw as Lead), id: String((updatedRaw as Lead)?.id ?? (updatedRaw as Lead)?.$id ?? id) };
+        const updated = {
+          ...(updatedRaw as Lead),
+          id: String(
+            (updatedRaw as Lead)?.id ?? (updatedRaw as Lead)?.$id ?? id
+          ),
+        };
         setLead(updated);
         setFormData(updated);
         setShowEditDialog(false);
@@ -136,79 +193,195 @@ export default function LeadDetailClient({ initialLead, actions }: LeadDetailCli
 
   return (
     <div className="pt-16 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap gap-y-3 items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/leads')} className="flex items-center gap-2"><ArrowLeft className="h-4 w-4" />Back to Leads</Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/leads')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Leads
+          </Button>
           <div className="h-6 w-px bg-gray-300" />
           <div>
             <h1 className="text-3xl font-light">{lead.name}</h1>
-            <p className="text-sm text-muted-foreground">{lead.company || 'Individual Lead'}</p>
+            <p className="text-sm text-muted-foreground">
+              {lead.company || 'Individual Lead'}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {String(lead.status).toLowerCase() !== 'converted' && String(lead.status).toLowerCase() !== 'lost' && (
-            <Button variant="outline" onClick={handleConvertToClient} disabled={isLoading}><UserCheck className="h-4 w-4 mr-2" />Convert to Client</Button>
-          )}
-          <Button variant="outline" onClick={() => setShowEditDialog(true)} disabled={isLoading}><Edit className="h-4 w-4 mr-2" />Edit</Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={isLoading}><Trash2 className="h-4 w-4 mr-2" />Delete</Button>
+          {String(lead.status).toLowerCase() !== 'converted' &&
+            String(lead.status).toLowerCase() !== 'lost' && (
+              <Button
+                variant="outline"
+                onClick={handleConvertToClient}
+                disabled={isLoading}
+              >
+                <UserCheck className="h-4 w-4 mr-2" />
+                Convert to Client
+              </Button>
+            )}
+          {/* <Button variant="outline" onClick={() => setShowEditDialog(true)} disabled={isLoading}><Edit className="h-4 w-4 mr-2" />Edit</Button> */}
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isLoading}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <Badge variant="outline" className={getStatusColor(lead.status)}>{lead.status}</Badge>
-        <Badge variant="outline" className={getPriorityColor(lead.priority)}>{lead.priority} Priority</Badge>
-        <Badge variant="outline" className="bg-blue-100 text-blue-800">{lead.source}</Badge>
+        <Badge variant="outline" className={getStatusColor(lead.status)}>
+          {lead.status}
+        </Badge>
+        <Badge variant="outline" className={getPriorityColor(lead.priority)}>
+          {lead.priority} Priority
+        </Badge>
+        <Badge variant="outline" className="bg-blue-100 text-blue-800">
+          {lead.source}
+        </Badge>
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-8 space-y-6">
+        <div className="col-span-12 md:col-span-8 space-y-6">
           <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4"><User className="h-5 w-5 text-gray-600" /><h3 className="text-lg font-semibold">Contact Information</h3></div>
+            <div className="flex items-center gap-3 mb-4">
+              <User className="h-5 w-5 text-gray-600" />
+              <h3 className="text-lg font-semibold">Contact Information</h3>
+            </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-4">
-                <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-gray-400" /><div><p className="text-sm text-gray-600">Email</p><p className="font-medium">{lead.email || 'Not provided'}</p></div></div>
-                <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-gray-400" /><div><p className="text-sm text-gray-600">Phone</p><p className="font-medium">{lead.phone || 'Not provided'}</p></div></div>
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600">Email</p>
+                    <p className="font-medium">
+                      {lead.email || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600">Phone</p>
+                    <p className="font-medium">
+                      {lead.phone || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center gap-3"><Building className="h-4 w-4 text-gray-400" /><div><p className="text-sm text-gray-600">Company</p><p className="font-medium">{lead.company || 'Individual'}</p></div></div>
-                <div className="flex items-center gap-3"><User className="h-4 w-4 text-gray-400" /><div><p className="text-sm text-gray-600">Assigned To</p><p className="font-medium">{lead.assignedTo || 'Unassigned'}</p></div></div>
+                <div className="flex items-center gap-3">
+                  <Building className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600">Company</p>
+                    <p className="font-medium">
+                      {lead.company || 'Individual'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <User className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600">Assigned To</p>
+                    <p className="font-medium">
+                      {lead.assignedTo || 'Unassigned'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
 
           <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4"><Clock className="h-5 w-5 text-gray-600" /><h3 className="text-lg font-semibold">Timeline</h3></div>
-            <div className="grid grid-cols-3 gap-6">
-              <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-gray-400" /><div><p className="text-sm text-gray-600">Last Contact</p><p className="font-medium">{fmtDate(lead.lastContact) || 'Never'}</p></div></div>
-              <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-gray-400" /><div><p className="text-sm text-gray-600">Next Follow-up</p><p className="font-medium">{fmtDate(lead.nextFollowup) || 'Not scheduled'}</p></div></div>
+            <div className="flex items-center gap-3 mb-4">
+              <Clock className="h-5 w-5 text-gray-600" />
+              <h3 className="text-lg font-semibold">Timeline</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {lead.$createdAt && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-sm text-gray-600">Created</p>
+                    <p className="font-medium text-sm md:text-base">
+                      {formatDate(lead.$createdAt) || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center gap-3">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-600">Last Contact</p>
+                  <p className="font-medium text-sm md:text-base">
+                    {fmtDate(lead.lastContact) || 'Never'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Calendar className="h-4 w-4 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-600">Next Follow-up</p>
+                  <p className="font-medium text-sm md:text-base">
+                    {fmtDate(lead.nextFollowup) || 'Not scheduled'}
+                  </p>
+                </div>
+              </div>
             </div>
           </Card>
 
           {lead.notes && (
             <Card className="p-6">
-              <div className="flex items-center gap-3 mb-4"><FileText className="h-5 w-5 text-gray-600" /><h3 className="text-lg font-semibold">Notes</h3></div>
+              <div className="flex items-center gap-3 mb-4">
+                <FileText className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-semibold">Notes</h3>
+              </div>
               <p className="text-gray-700 leading-relaxed">{lead.notes}</p>
             </Card>
           )}
         </div>
 
-        <div className="col-span-4 space-y-6">
+        <div className="col-span-12 md:col-span-4 space-y-6">
           <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4"><DollarSign className="h-5 w-5 text-gray-600" /><h3 className="text-lg font-semibold">Estimated Value</h3></div>
+            <div className="flex items-center gap-3 mb-4">
+              <Coins className="h-5 w-5 text-gray-600" />
+              <h3 className="text-lg font-semibold">Estimated Value</h3>
+            </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">{lead.estimatedValue ? `${lead.estimatedValue} ${lead.currency}` : 'TBD'}</div>
+              <div className="text-3xl font-bold text-green-600">
+                {lead.estimatedValue
+                  ? `${lead.estimatedValue} ${lead.currency}`
+                  : 'TBD'}
+              </div>
               <p className="text-sm text-gray-600 mt-1">Potential Revenue</p>
             </div>
           </Card>
 
           <Card className="p-6">
-            <div className="flex items-center gap-3 mb-4"><Target className="h-5 w-5 text-gray-600" /><h3 className="text-lg font-semibold">Lead Source</h3></div>
-            <div className="text-center"><Badge variant="outline" className="bg-blue-100 text-blue-800 text-lg px-4 py-2">{lead.source}</Badge></div>
+            <div className="flex items-center gap-3 mb-4">
+              <Target className="h-5 w-5 text-gray-600" />
+              <h3 className="text-lg font-semibold">Lead Source</h3>
+            </div>
+            <div className="text-center">
+              <Badge
+                variant="outline"
+                className="bg-blue-100 text-blue-800 text-lg px-4 py-2"
+              >
+                {lead.source}
+              </Badge>
+            </div>
           </Card>
         </div>
       </div>
 
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      {/* <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Lead</DialogTitle>
@@ -252,7 +425,7 @@ export default function LeadDetailClient({ initialLead, actions }: LeadDetailCli
             </div>
           </form>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 }

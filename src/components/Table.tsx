@@ -196,7 +196,7 @@ const columns: ColumnDef<Item>[] = [
       const amount = parseFloat(row.getValue('balance'));
       const formatted = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'PKR',
       }).format(amount);
       return formatted;
     },

@@ -38,14 +38,14 @@ export default function AvatarUploader({
 
   useEffect(() => {
     onFileChange?.(files[0]?.file || null);
-  }, [files, onFileChange])
+  }, [files, onFileChange]);
 
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative inline-flex">
         {/* Drop area */}
         <button
-          type='button'
+          type="button"
           className="border-input hover:bg-accent/50 data-[dragging=true]:bg-accent/50 focus-visible:border-ring focus-visible:ring-ring/50 relative flex size-16 items-center justify-center overflow-hidden rounded-full border border-dashed transition-colors outline-none focus-visible:ring-[3px] has-disabled:pointer-events-none has-disabled:opacity-50 has-[img]:border-none"
           onClick={openFileDialog}
           onDragEnter={handleDragEnter}

@@ -20,7 +20,12 @@ interface CSVImportProps {
   sampleData: Record<string, unknown>;
 }
 
-export default function CSVImport({ onImport, expectedColumns, entityName, sampleData }: CSVImportProps) {
+export default function CSVImport({
+  onImport,
+  expectedColumns,
+  entityName,
+  sampleData,
+}: CSVImportProps) {
   const [open, setOpen] = useState(false);
   const [csvData, setCsvData] = useState<Record<string, unknown>[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,16 +44,20 @@ export default function CSVImport({ onImport, expectedColumns, entityName, sampl
     reader.onload = (e) => {
       try {
         const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim());
-        
+        const lines = text.split('\n').filter((line) => line.trim());
+
         if (lines.length < 2) {
-          toast.error('CSV file must contain at least a header and one data row');
+          toast.error(
+            'CSV file must contain at least a header and one data row'
+          );
           return;
         }
 
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-        const data = lines.slice(1).map(line => {
-          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+        const headers = lines[0]
+          .split(',')
+          .map((h) => h.trim().replace(/"/g, ''));
+        const data = lines.slice(1).map((line) => {
+          const values = line.split(',').map((v) => v.trim().replace(/"/g, ''));
           const row: Record<string, unknown> = {};
           headers.forEach((header, index) => {
             row[header] = values[index] || '';
@@ -75,7 +84,9 @@ export default function CSVImport({ onImport, expectedColumns, entityName, sampl
     setIsLoading(true);
     try {
       onImport(csvData);
-      toast.success(`Successfully imported ${csvData.length} ${entityName.toLowerCase()}s`);
+      toast.success(
+        `Successfully imported ${csvData.length} ${entityName.toLowerCase()}s`
+      );
       setOpen(false);
       setCsvData([]);
       if (fileInputRef.current) {
@@ -91,9 +102,11 @@ export default function CSVImport({ onImport, expectedColumns, entityName, sampl
 
   const downloadSampleCSV = () => {
     const headers = expectedColumns.join(',');
-    const sampleRow = expectedColumns.map(col => sampleData[col] || '').join(',');
+    const sampleRow = expectedColumns
+      .map((col) => sampleData[col] || '')
+      .join(',');
     const csvContent = `${headers}\n${sampleRow}`;
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -117,12 +130,13 @@ export default function CSVImport({ onImport, expectedColumns, entityName, sampl
         <DialogHeader>
           <DialogTitle>Import {entityName}s from CSV</DialogTitle>
           <DialogDescription>
-            Upload a CSV file to import multiple {entityName.toLowerCase()}s at once.
+            Upload a CSV file to import multiple {entityName.toLowerCase()}s at
+            once.
           </DialogDescription>
         </DialogHeader>
 
         {/* Upload Zone */}
-        <div 
+        <div
           className="mt-4 flex h-28 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:bg-gray-100"
           onClick={() => fileInputRef.current?.click()}
         >
@@ -144,9 +158,7 @@ export default function CSVImport({ onImport, expectedColumns, entityName, sampl
           <p className="font-medium">Expected CSV Format</p>
           <p>
             Your CSV should include these columns:{' '}
-            <span className="font-mono">
-              {expectedColumns.join(', ')}
-            </span>
+            <span className="font-mono">{expectedColumns.join(', ')}</span>
           </p>
           <button
             onClick={downloadSampleCSV}
@@ -191,11 +203,20 @@ export default function CSVImport({ onImport, expectedColumns, entityName, sampl
 
         {/* Actions */}
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
-          <Button onClick={handleImport} disabled={isLoading || csvData.length === 0}>
-            {isLoading ? 'Importing...' : `Import ${csvData.length} ${entityName}s`}
+          <Button
+            onClick={handleImport}
+            disabled={isLoading || csvData.length === 0}
+          >
+            {isLoading
+              ? 'Importing...'
+              : `Import ${csvData.length} ${entityName}s`}
           </Button>
         </div>
       </DialogContent>

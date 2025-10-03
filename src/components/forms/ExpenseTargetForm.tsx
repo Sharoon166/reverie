@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DollarSign, Target } from 'lucide-react';
+import { Coins, Target } from 'lucide-react';
 import { CURRENCIES } from '@/lib/constants';
 
 const expenseTargetFormSchema = z.object({
@@ -35,15 +35,20 @@ type ExpenseTargetFormValues = z.infer<typeof expenseTargetFormSchema>;
 interface ExpenseTargetFormProps {
   initialData?: {
     targetAmount?: number;
-    currency?: 'PKR' | 'USD';
+    currency?: 'PKR';
     month?: string;
   };
   onSubmit: (data: ExpenseTargetFormValues) => Promise<void>;
   isLoading?: boolean;
-  previousTarget?: { amount?: number; currency?: 'PKR' | 'USD' };
+  previousTarget?: { amount?: number; currency?: 'PKR' };
 }
 
-export function ExpenseTargetForm({ initialData, onSubmit, isLoading, previousTarget }: ExpenseTargetFormProps) {
+export function ExpenseTargetForm({
+  initialData,
+  onSubmit,
+  isLoading,
+  previousTarget,
+}: ExpenseTargetFormProps) {
   const form = useForm<ExpenseTargetFormValues>({
     resolver: zodResolver(expenseTargetFormSchema),
     defaultValues: {
@@ -61,11 +66,16 @@ export function ExpenseTargetForm({ initialData, onSubmit, isLoading, previousTa
             <Target className="h-4 w-4" />
             Set Monthly Expense Target
           </div>
-          {typeof previousTarget?.amount === 'number' && previousTarget.amount! > 0 && (
-            <div className="text-xs text-gray-500 -mt-2">
-              Previous target: <span className="font-medium text-gray-700">{previousTarget.amount?.toLocaleString()} {previousTarget.currency}</span>
-            </div>
-          )}
+          {typeof previousTarget?.amount === 'number' &&
+            previousTarget.amount! > 0 && (
+              <div className="text-xs text-gray-500 -mt-2">
+                Previous target:{' '}
+                <span className="font-medium text-gray-700">
+                  {previousTarget.amount?.toLocaleString()}{' '}
+                  {previousTarget.currency}
+                </span>
+              </div>
+            )}
 
           <FormField
             control={form.control}
@@ -95,7 +105,7 @@ export function ExpenseTargetForm({ initialData, onSubmit, isLoading, previousTa
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
+                    <Coins className="h-4 w-4" />
                     Target Amount
                   </FormLabel>
                   <FormControl>
@@ -125,7 +135,10 @@ export function ExpenseTargetForm({ initialData, onSubmit, isLoading, previousTa
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select currency" />
@@ -147,7 +160,11 @@ export function ExpenseTargetForm({ initialData, onSubmit, isLoading, previousTa
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="submit" disabled={isLoading} className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+          >
             {isLoading ? 'Saving...' : 'Set Target'}
           </Button>
         </div>

@@ -9,7 +9,9 @@ export type LeadStatus =
   | 'negotiation'
   | 'converted'
   | 'lost'
-  | 'follow-up';
+  | 'follow-up'
+  | 'meeting'
+  ;
 
 export type LeadSource =
   | 'website'
@@ -40,6 +42,8 @@ export interface LeadActivity {
 
 export type Lead = {
   $id?: string;
+  $createdAt?: string;
+  $updatedAt?: string;
   id: string;
   name: string;
   company?: string;

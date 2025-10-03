@@ -1,5 +1,5 @@
 // Currency options
-export const CURRENCIES = ['PKR', 'USD'] as const;
+export const CURRENCIES = ['PKR'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
 // Employee-related constants
@@ -67,12 +67,12 @@ export const LEAD_STATUS = [
   'New',
   'Contacted',
   'Qualified',
-  'Proposal Sent',
+  'Proposal',
+  'Meeting',
   'Negotiation',
   'Converted',
   'Lost',
   'Follow-Up',
-  'Proposal',
   'Closed Won',
   'Closed Lost',
 ] as const;

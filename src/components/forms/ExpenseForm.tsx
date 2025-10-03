@@ -28,7 +28,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, DollarSign, FileText, User, CreditCard, Receipt } from 'lucide-react';
+import {
+  CalendarIcon,
+  Coins,
+  FileText,
+  User,
+  CreditCard,
+  Receipt,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -56,7 +63,12 @@ interface ExpenseFormProps {
   mode: 'create' | 'edit';
 }
 
-export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseFormProps) {
+export function ExpenseForm({
+  initialData,
+  onSubmit,
+  isLoading,
+  mode,
+}: ExpenseFormProps) {
   const form = useForm<ExpenseFormValues>({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: {
@@ -120,7 +132,6 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
                           disabled={(date) =>
                             date > new Date() || date < new Date('1900-01-01')
                           }
-
                         />
                       </PopoverContent>
                     </Popover>
@@ -135,7 +146,7 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
+                      <Coins className="h-4 w-4" />
                       Amount
                     </FormLabel>
                     <FormControl>
@@ -164,7 +175,10 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
                     Description
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="What was this expense for?" {...field} />
+                    <Input
+                      placeholder="What was this expense for?"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -178,7 +192,10 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -206,7 +223,10 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
                       <CreditCard className="h-4 w-4" />
                       Payment Account
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select account" />
@@ -252,7 +272,10 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
                       Paid By
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Who paid for this expense?" {...field} />
+                      <Input
+                        placeholder="Who paid for this expense?"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -267,7 +290,10 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
                 <FormItem>
                   <FormLabel>Receipt URL (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Link to receipt or document" {...field} />
+                    <Input
+                      placeholder="Link to receipt or document"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
                     Upload receipt to cloud storage and paste the link here.
@@ -304,8 +330,16 @@ export function ExpenseForm({ initialData, onSubmit, isLoading, mode }: ExpenseF
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="submit" disabled={isLoading} className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-              {isLoading ? 'Saving...' : mode === 'create' ? 'Add Expense' : 'Update Expense'}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+            >
+              {isLoading
+                ? 'Saving...'
+                : mode === 'create'
+                  ? 'Add Expense'
+                  : 'Update Expense'}
             </Button>
           </div>
         </form>

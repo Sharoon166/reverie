@@ -15,7 +15,7 @@ import {
 import { Expense } from '@/types/expense';
 import {
   Download,
-  DollarSign,
+  Coins,
   Plus,
   Target,
   Receipt,
@@ -24,11 +24,18 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
-import { ExpenseForm, type ExpenseFormValues } from '@/components/forms/ExpenseForm';
+import {
+  ExpenseForm,
+  type ExpenseFormValues,
+} from '@/components/forms/ExpenseForm';
 import { ExpenseTargetForm } from '@/components/forms/ExpenseTargetForm';
 import ExpensesTable from './ExpensesTable';
 import { getAllExpenses } from '@/actions/expenses';
-import { createOrUpdateExpenseTarget, getExpenseTarget } from '@/actions/expenseTargets';
+import {
+  createOrUpdateExpenseTarget,
+  getExpenseTarget,
+} from '@/actions/expenseTargets';
+import { formatPakistaniCurrency } from '@/lib/utils';
 
 interface ExpensesPageClientProps {
   initialExpenses: Expense[];
@@ -39,9 +46,13 @@ interface ExpensesPageClientProps {
   };
 }
 
-export default function ExpensesPageClient({ initialExpenses, actions }: ExpensesPageClientProps) {
+export default function ExpensesPageClient({
+  initialExpenses,
+  actions,
+}: ExpensesPageClientProps) {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
-  const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>(initialExpenses);
+  const [filteredExpenses, setFilteredExpenses] =
+    useState<Expense[]>(initialExpenses);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [showTargetDialog, setShowTargetDialog] = useState(false);
@@ -50,18 +61,28 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
   const [isLoading, setIsLoading] = useState(false);
   const [isQuarterClosed, setIsQuarterClosed] = useState(false);
   const [targetLoading, setTargetLoading] = useState(false);
-  const [targetInitial, setTargetInitial] = useState<{ targetAmount?: number; currency?: 'PKR' | 'USD'; month?: string }>();
+  const [targetInitial, setTargetInitial] = useState<{
+    targetAmount?: number;
+    currency?: 'PKR';
+    month?: string;
+  }>();
   const [targetAmountDb, setTargetAmountDb] = useState<number>(0);
-  const [targetCurrencyDb, setTargetCurrencyDb] = useState<'PKR' | 'USD'>('PKR');
+  const [targetCurrencyDb, setTargetCurrencyDb] = useState<'PKR'>(
+    'PKR'
+  );
   const now = new Date();
-  
-  function getQuarter(d: Date) { return Math.floor(d.getMonth() / 3) + 1; }
-  
-  const [selectedQuarter, setSelectedQuarter] = useState<number>(getQuarter(now));
+
+  function getQuarter(d: Date) {
+    return Math.floor(d.getMonth() / 3) + 1;
+  }
+
+  const [selectedQuarter, setSelectedQuarter] = useState<number>(
+    getQuarter(now)
+  );
   const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
   const selectedQuarterTag = `Q${selectedQuarter}-${selectedYear}`;
 
-  const toTargetCurrency = (v: unknown): 'PKR' | 'USD' => (v === 'USD' ? 'USD' : 'PKR');
+
 
   // Load existing target for the selected quarter when opening the dialog
   const loadExpenseTarget = useCallback(async () => {
@@ -72,18 +93,23 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
       if (existing) {
         setTargetInitial({
           targetAmount: Number(existing.targetAmount) || undefined,
-          currency: toTargetCurrency((existing as { currency?: unknown })?.currency),
+          currency: "PKR",
           month: defaultMonth,
         });
         setTargetAmountDb(Number(existing.targetAmount) || 0);
-        setTargetCurrencyDb(toTargetCurrency((existing as { currency?: unknown })?.currency));
+        setTargetCurrencyDb(
+          "PKR"
+        );
       } else {
         setTargetInitial({ month: defaultMonth, currency: 'PKR' });
         setTargetAmountDb(0);
         setTargetCurrencyDb('PKR');
       }
     } catch {
-      setTargetInitial({ month: `${selectedYear}-${String((selectedQuarter - 1) * 3 + 1).padStart(2, '0')}`, currency: 'PKR' });
+      setTargetInitial({
+        month: `${selectedYear}-${String((selectedQuarter - 1) * 3 + 1).padStart(2, '0')}`,
+        currency: 'PKR',
+      });
     } finally {
       setTargetLoading(false);
     }
@@ -105,7 +131,9 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
         if (cancelled) return;
         if (existing) {
           setTargetAmountDb(Number(existing.targetAmount) || 0);
-          setTargetCurrencyDb(toTargetCurrency((existing as { currency?: unknown })?.currency));
+          setTargetCurrencyDb(
+            "PKR"
+          );
         } else {
           setTargetAmountDb(0);
           setTargetCurrencyDb('PKR');
@@ -117,15 +145,22 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
         }
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [selectedQuarter, selectedYear]);
 
   // Check if current quarter is closed
   useEffect(() => {
     const checkQuarterStatus = async () => {
       try {
-        const { isQuarterClosed: checkQuarterClosed } = await import('@/actions/reports');
-        const isClosed = await checkQuarterClosed(selectedQuarter, selectedYear);
+        const { isQuarterClosed: checkQuarterClosed } = await import(
+          '@/actions/reports'
+        );
+        const isClosed = await checkQuarterClosed(
+          selectedQuarter,
+          selectedYear
+        );
         setIsQuarterClosed(isClosed);
       } catch (error) {
         console.error('Error checking quarter status:', error);
@@ -143,20 +178,23 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
       setFilteredExpenses(expenses);
       return;
     }
-    
-    const filtered = expenses.filter(expense => 
-      expense.description?.toLowerCase().includes(term.toLowerCase()) ||
-      expense.category?.toLowerCase().includes(term.toLowerCase()) ||
-      expense.account?.toLowerCase().includes(term.toLowerCase()) ||
-      expense.amount.toString().includes(term)
+
+    const filtered = expenses.filter(
+      (expense) =>
+        expense.description?.toLowerCase().includes(term.toLowerCase()) ||
+        expense.category?.toLowerCase().includes(term.toLowerCase()) ||
+        expense.account?.toLowerCase().includes(term.toLowerCase()) ||
+        expense.amount.toString().includes(term)
     );
-    
+
     setFilteredExpenses(filtered);
   };
 
   // Filter expenses by selected quarter
-  const quarterlyExpenses = filteredExpenses.filter((expense) =>
-    expense.date && isDateInQuarter(expense.date, selectedQuarter, selectedYear)
+  const quarterlyExpenses = filteredExpenses.filter(
+    (expense) =>
+      expense.date &&
+      isDateInQuarter(expense.date, selectedQuarter, selectedYear)
   );
 
   function isDateInQuarter(dateStr: string, quarter: number, year: number) {
@@ -165,11 +203,19 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
   }
 
   // Calculate stats
-  const totalExpenses = quarterlyExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const totalExpenses = quarterlyExpenses.reduce(
+    (sum, e) => sum + (e.amount || 0),
+    0
+  );
   const targetAmount = targetAmountDb; // from backend
-  const targetProgress = targetAmount > 0 ? (totalExpenses / targetAmount) * 100 : 0;
+  const targetProgress =
+    targetAmount > 0 ? (totalExpenses / targetAmount) * 100 : 0;
 
-  async function handleTargetSubmit(data: { targetAmount: number; currency: 'PKR' | 'USD'; month: string }) {
+  async function handleTargetSubmit(data: {
+    targetAmount: number;
+    currency: 'PKR';
+    month: string;
+  }) {
     try {
       setTargetLoading(true);
       // Derive quarter/year from month
@@ -177,7 +223,12 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
       const y = Number(yStr);
       const m = Number(mStr);
       const q = (Math.floor((m - 1) / 3) + 1) as 1 | 2 | 3 | 4;
-      await createOrUpdateExpenseTarget(q, y, Number(data.targetAmount), data.currency);
+      await createOrUpdateExpenseTarget(
+        q,
+        y,
+        Number(data.targetAmount),
+        data.currency
+      );
       toast.success('Expense target saved');
       setShowTargetDialog(false);
       setTargetInitial(undefined);
@@ -228,7 +279,7 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
 
   async function handleDelete(expenseId: string) {
     if (!confirm('Are you sure you want to delete this expense?')) return;
-    
+
     try {
       setIsLoading(true);
       await actions.remove(expenseId);
@@ -248,7 +299,10 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
       // For now, we'll just simulate a refresh
       const res = await getAllExpenses();
       const rows = Array.isArray((res as unknown as { rows?: unknown })?.rows)
-        ? ((res as unknown as { rows?: unknown[] }).rows as Record<string, unknown>[])
+        ? ((res as unknown as { rows?: unknown[] }).rows as Record<
+          string,
+          unknown
+        >[])
         : [];
 
       type Row = {
@@ -286,44 +340,72 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
           'Professional Services',
           'Other',
         ];
-        return all.includes(v as Expense['category']) ? (v as Expense['category']) : 'Other';
+        return all.includes(v as Expense['category'])
+          ? (v as Expense['category'])
+          : 'Other';
       };
 
       const toAccount = (v: unknown): Expense['account'] => {
-        const all: Expense['account'][] = ['Bank', 'Cash', 'Credit Card', 'Digital Wallet'];
-        return all.includes(v as Expense['account']) ? (v as Expense['account']) : 'Bank';
+        const all: Expense['account'][] = [
+          'Bank',
+          'Cash',
+          'Credit Card',
+          'Digital Wallet',
+        ];
+        return all.includes(v as Expense['account'])
+          ? (v as Expense['account'])
+          : 'Bank';
       };
 
       const toStatus = (v: unknown): Expense['status'] => {
         const all: Expense['status'][] = ['Pending', 'Approved', 'Rejected'];
-        return all.includes(v as Expense['status']) ? (v as Expense['status']) : 'Pending';
+        return all.includes(v as Expense['status'])
+          ? (v as Expense['status'])
+          : 'Pending';
       };
 
-      const updatedExpenses: Expense[] = rows.map((r: Record<string, unknown>) => {
-        const row = r as Row;
-        const idRaw = row.id ?? row.$id;
-        const createdRaw = row.createdAt ?? row.created_at;
-        const updatedRaw = row.updatedAt ?? row.updated_at;
-        const paidByRaw = row.paidBy ?? row.paid_by;
+      const updatedExpenses: Expense[] = rows.map(
+        (r: Record<string, unknown>) => {
+          const row = r as Row;
+          const idRaw = row.id ?? row.$id;
+          const createdRaw = row.createdAt ?? row.created_at;
+          const updatedRaw = row.updatedAt ?? row.updated_at;
+          const paidByRaw = row.paidBy ?? row.paid_by;
 
-        return {
-          id: String(idRaw ?? ''),
-          date: typeof row.date === 'string' && row.date ? row.date : new Date().toISOString().split('T')[0],
-          description: typeof row.description === 'string' ? row.description : '',
-          category: toCategory(row.category),
-          account: toAccount(row.account),
-          amount: typeof row.amount === 'number' ? row.amount : Number(row.amount) || 0,
-          currency: 'PKR',
-          paidBy: typeof paidByRaw === 'string' ? paidByRaw : '',
-          receiptUrl: typeof row.receiptUrl === 'string' ? row.receiptUrl : undefined,
-          notes: typeof row.notes === 'string' ? row.notes : undefined,
-          approvedBy: typeof row.approvedBy === 'string' ? row.approvedBy : undefined,
-          status: toStatus(row.status),
-          createdAt: typeof createdRaw === 'string' ? createdRaw : new Date().toISOString(),
-          updatedAt: typeof updatedRaw === 'string' ? updatedRaw : new Date().toISOString(),
-        } satisfies Expense;
-      });
-      
+          return {
+            id: String(idRaw ?? ''),
+            date:
+              typeof row.date === 'string' && row.date
+                ? row.date
+                : new Date().toISOString().split('T')[0],
+            description:
+              typeof row.description === 'string' ? row.description : '',
+            category: toCategory(row.category),
+            account: toAccount(row.account),
+            amount:
+              typeof row.amount === 'number'
+                ? row.amount
+                : Number(row.amount) || 0,
+            currency: 'PKR',
+            paidBy: typeof paidByRaw === 'string' ? paidByRaw : '',
+            receiptUrl:
+              typeof row.receiptUrl === 'string' ? row.receiptUrl : undefined,
+            notes: typeof row.notes === 'string' ? row.notes : undefined,
+            approvedBy:
+              typeof row.approvedBy === 'string' ? row.approvedBy : undefined,
+            status: toStatus(row.status),
+            createdAt:
+              typeof createdRaw === 'string'
+                ? createdRaw
+                : new Date().toISOString(),
+            updatedAt:
+              typeof updatedRaw === 'string'
+                ? updatedRaw
+                : new Date().toISOString(),
+          } satisfies Expense;
+        }
+      );
+
       setExpenses(updatedExpenses);
       setFilteredExpenses(updatedExpenses);
     } catch (error) {
@@ -404,8 +486,6 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
     }
   }
 
-
-
   return (
     <div className="pt-16 space-y-4">
       {/* Quarter Closed Warning */}
@@ -416,9 +496,12 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
               <span className="text-white text-xs font-bold">!</span>
             </div>
             <div>
-              <h3 className="text-red-800 font-medium">Quarter Q{selectedQuarter}-{selectedYear} is Closed</h3>
+              <h3 className="text-red-800 font-medium">
+                Quarter Q{selectedQuarter}-{selectedYear} is Closed
+              </h3>
               <p className="text-red-600 text-sm">
-                This quarter has been closed and locked. You cannot add, edit, or delete expenses for this period.
+                This quarter has been closed and locked. You cannot add, edit,
+                or delete expenses for this period.
               </p>
             </div>
           </div>
@@ -426,7 +509,7 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between flex-wrap gap-y-3 mb-8">
         <div>
           <h2 className="text-4xl font-light text-gray-900">
             Expense Management
@@ -475,93 +558,154 @@ export default function ExpensesPageClient({ initialExpenses, actions }: Expense
         </div>
       </div>
 
-    {/* Search and Filters */}
-    <div className="flex items-center gap-4 mb-6">
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input placeholder="Search expenses..." className="pl-10" value={searchTerm} onChange={(e) => handleSearch(e.target.value)} />
+      {/* Search and Filters */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search expenses..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            className="border rounded px-3 py-2"
+            value={selectedQuarter}
+            onChange={(e) => setSelectedQuarter(Number(e.target.value))}
+          >
+            <option value={1}>Q1</option>
+            <option value={2}>Q2</option>
+            <option value={3}>Q3</option>
+            <option value={4}>Q4</option>
+          </select>
+          <Input
+            type="number"
+            value={selectedYear}
+            onChange={(e) =>
+              setSelectedYear(Number(e.target.value) || now.getFullYear())
+            }
+            className="w-24"
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={fetchExpenses}
+          disabled={isLoading}
+          className="border-gray-300"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
-      <div className="flex items-center gap-2">
-        <select className="border rounded px-3 py-2" value={selectedQuarter} onChange={(e) => setSelectedQuarter(Number(e.target.value))}>
-          <option value={1}>Q1</option>
-          <option value={2}>Q2</option>
-          <option value={3}>Q3</option>
-          <option value={4}>Q4</option>
-        </select>
-        <Input type="number" value={selectedYear} onChange={(e) => setSelectedYear(Number(e.target.value) || now.getFullYear())} className="w-24" />
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card className="p-6 border-0 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-yellow-400 rounded-xl">
+              <Coins className="h-6 w-6 text-gray-900" />
+            </div>
+            <div>
+              <div className="text-3xl font-light text-gray-900">
+                {formatPakistaniCurrency(totalExpenses)}
+              </div>
+              <div className="text-sm text-gray-600">
+                Total Spent in {selectedQuarterTag}
+              </div>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-6 border-0 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gray-800 rounded-xl">
+              <Target className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <div className="text-3xl font-light text-gray-900">
+                {targetProgress.toFixed(1)}%
+              </div>
+              <div className="text-sm text-gray-600">Target Progress</div>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-6 border-0 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-yellow-500 rounded-xl">
+              <Receipt className="h-6 w-6 text-gray-900" />
+            </div>
+            <div>
+              <div className="text-3xl font-light text-gray-900">
+                {quarterlyExpenses.length}
+              </div>
+              <div className="text-sm text-gray-600">
+                Total Expenses Records
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
-      <Button variant="outline" onClick={fetchExpenses} disabled={isLoading} className="border-gray-300">
-        <RefreshCw className="h-4 w-4 mr-2" />
-        Refresh
-      </Button>
+
+      {/* Expenses Table */}
+      <ExpensesTable
+        data={quarterlyExpenses}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        isLoading={isLoading}
+        isQuarterClosed={isQuarterClosed}
+      />
+
+      {/* Add/Edit Expense Dialog */}
+      <Dialog open={showFormDialog} onOpenChange={setShowFormDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {formMode === 'create' ? 'Add New Expense' : 'Edit Expense'}
+            </DialogTitle>
+            <DialogDescription>
+              {formMode === 'create'
+                ? 'Add a new expense to track your spending'
+                : 'Update the expense details'}
+            </DialogDescription>
+          </DialogHeader>
+          <ExpenseForm
+            initialData={formMode === 'edit' ? formData : undefined}
+            onSubmit={handleFormSubmit}
+            isLoading={isLoading}
+            mode={formMode}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Set Target Dialog */}
+      <Dialog
+        open={showTargetDialog}
+        onOpenChange={(v) => {
+          setShowTargetDialog(v);
+          if (!v) setTargetInitial(undefined);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Set Expense Target for {selectedQuarterTag}
+            </DialogTitle>
+            <DialogDescription>
+              Define your monthly cap for this quarter.
+            </DialogDescription>
+          </DialogHeader>
+          <ExpenseTargetForm
+            initialData={targetInitial}
+            previousTarget={{
+              amount: targetAmountDb,
+              currency: targetCurrencyDb,
+            }}
+            onSubmit={handleTargetSubmit}
+            isLoading={targetLoading}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
-
-    {/* Stats Cards */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <Card className="p-6 border-0 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-yellow-400 rounded-xl">
-            <DollarSign className="h-6 w-6 text-gray-900" />
-          </div>
-          <div>
-            <div className="text-3xl font-light text-gray-900">{totalExpenses.toLocaleString()} PKR</div>
-            <div className="text-sm text-gray-600">Total Spent in {selectedQuarterTag}</div>
-          </div>
-        </div>
-      </Card>
-      <Card className="p-6 border-0 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-gray-800 rounded-xl">
-            <Target className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <div className="text-3xl font-light text-gray-900">{targetProgress.toFixed(1)}%</div>
-            <div className="text-sm text-gray-600">Target Progress</div>
-          </div>
-        </div>
-      </Card>
-      <Card className="p-6 border-0 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-yellow-500 rounded-xl">
-            <Receipt className="h-6 w-6 text-gray-900" />
-          </div>
-          <div>
-            <div className="text-3xl font-light text-gray-900">{quarterlyExpenses.length}</div>
-            <div className="text-sm text-gray-600">Total Expenses Records</div>
-          </div>
-        </div>
-      </Card>
-    </div>
-
-    {/* Expenses Table */}
-    <ExpensesTable data={quarterlyExpenses} onEdit={handleEdit} onDelete={handleDelete} isLoading={isLoading} isQuarterClosed={isQuarterClosed} />
-
-    {/* Add/Edit Expense Dialog */}
-    <Dialog open={showFormDialog} onOpenChange={setShowFormDialog}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{formMode === 'create' ? 'Add New Expense' : 'Edit Expense'}</DialogTitle>
-          <DialogDescription>{formMode === 'create' ? 'Add a new expense to track your spending' : 'Update the expense details'}</DialogDescription>
-        </DialogHeader>
-        <ExpenseForm initialData={formMode === 'edit' ? formData : undefined} onSubmit={handleFormSubmit} isLoading={isLoading} mode={formMode} />
-      </DialogContent>
-    </Dialog>
-
-    {/* Set Target Dialog */}
-    <Dialog open={showTargetDialog} onOpenChange={(v) => { setShowTargetDialog(v); if (!v) setTargetInitial(undefined); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Set Expense Target for {selectedQuarterTag}</DialogTitle>
-          <DialogDescription>Define your monthly cap for this quarter.</DialogDescription>
-        </DialogHeader>
-        <ExpenseTargetForm
-          initialData={targetInitial}
-          previousTarget={{ amount: targetAmountDb, currency: targetCurrencyDb }}
-          onSubmit={handleTargetSubmit}
-          isLoading={targetLoading}
-        />
-      </DialogContent>
-    </Dialog>
-  </div>
-
-)}
+  );
+}

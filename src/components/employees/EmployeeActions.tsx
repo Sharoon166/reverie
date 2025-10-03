@@ -34,7 +34,7 @@ export default function EmployeeActions({ employee }: { employee: Employee }) {
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       const margin = 20;
-      const contentWidth = pageWidth - (margin * 2);
+      const contentWidth = pageWidth - margin * 2;
 
       // Set default font
       doc.setFont('helvetica');
@@ -77,21 +77,33 @@ export default function EmployeeActions({ employee }: { employee: Employee }) {
       );
 
       // Status badge with modern rounded design
-      const statusText = employee.status.charAt(0).toUpperCase() + employee.status.slice(1);
+      const statusText =
+        employee.status.charAt(0).toUpperCase() + employee.status.slice(1);
       const statusWidth = doc.getTextWidth(statusText) + 10;
 
-      const statusColor = employee.status === 'active'
-        ? [34, 197, 94] // subtle green
-        : [107, 114, 128]; // subtle gray
+      const statusColor =
+        employee.status === 'active'
+          ? [34, 197, 94] // subtle green
+          : [107, 114, 128]; // subtle gray
 
       doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
       doc.setDrawColor(statusColor[0], statusColor[1], statusColor[2]);
-      doc.roundedRect(pageWidth - margin - statusWidth, 70, statusWidth, 8, 4, 4, 'F');
+      doc.roundedRect(
+        pageWidth - margin - statusWidth,
+        70,
+        statusWidth,
+        8,
+        4,
+        4,
+        'F'
+      );
 
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(9);
       doc.setFont('helvatica', 'bold');
-      doc.text(statusText, pageWidth - margin - (statusWidth / 2), 75.5, { align: 'center' });
+      doc.text(statusText, pageWidth - margin - statusWidth / 2, 75.5, {
+        align: 'center',
+      });
 
       doc.setTextColor(15, 23, 42); // Reset to dark text
 
@@ -151,7 +163,9 @@ export default function EmployeeActions({ employee }: { employee: Employee }) {
       doc.text(employee.position || 'N/A', margin + 140, yPos + 10);
       doc.text(employee.department || 'N/A', margin + 140, yPos + 20);
       doc.text(
-        employee.joinDate ? new Date(employee.joinDate).toLocaleDateString() : 'N/A',
+        employee.joinDate
+          ? new Date(employee.joinDate).toLocaleDateString()
+          : 'N/A',
         margin + 140,
         yPos + 30
       );
@@ -181,7 +195,11 @@ export default function EmployeeActions({ employee }: { employee: Employee }) {
 
       doc.setFont('helvatica', 'normal');
       doc.setTextColor(15, 23, 42);
-      doc.text(`Rs${employee.salary ? employee.salary.toLocaleString() : 'N/A'}`, margin + 25, yPos + 10);
+      doc.text(
+        `Rs${employee.salary ? employee.salary.toLocaleString() : 'N/A'}`,
+        margin + 25,
+        yPos + 10
+      );
 
       // Notes Section (if exists)
       if (employee.notes) {
@@ -191,7 +209,10 @@ export default function EmployeeActions({ employee }: { employee: Employee }) {
         doc.setFont('helvatica', 'normal');
         doc.setTextColor(15, 23, 42);
 
-        const splitNotes = doc.splitTextToSize(employee.notes, contentWidth - 10);
+        const splitNotes = doc.splitTextToSize(
+          employee.notes,
+          contentWidth - 10
+        );
         doc.text(splitNotes, margin + 5, yPos + 10);
       }
 
@@ -204,9 +225,14 @@ export default function EmployeeActions({ employee }: { employee: Employee }) {
       doc.setFontSize(8);
       doc.setTextColor(100, 116, 139);
       doc.text('Confidential - Reverie HR System', margin, footerY);
-      doc.text(`Employee ID: ${employee.employeeId || 'N/A'}`, pageWidth - margin, footerY, {
-        align: 'right',
-      });
+      doc.text(
+        `Employee ID: ${employee.employeeId || 'N/A'}`,
+        pageWidth - margin,
+        footerY,
+        {
+          align: 'right',
+        }
+      );
 
       // Generate filename and save
       const fileName = `employee-${employee.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;

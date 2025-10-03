@@ -7,10 +7,9 @@ import type {
   RetainerRevenueKPI,
   QuarterlyRevenueKPI,
   HighValueClientsKPI,
-  
-  ProfitLossKPI,} from '@/types/kpi';
-import type {  Project } from '@/types/client';
-
+  ProfitLossKPI,
+} from '@/types/kpi';
+import type { Project } from '@/types/client';
 
 // =============================================================================
 // KPI DATA
@@ -70,7 +69,6 @@ export const DEMO_KPIS: KPI[] = [
     percentage: 48,
   } as HighValueClientsKPI,
 
-  
   {
     id: 'kpi20',
     type: 'profit_loss',
@@ -214,7 +212,6 @@ export const DEMO_PROJECTS: Project[] = [
 // =============================================================================
 // EMPLOYEE DATA
 // =============================================================================
-
 
 export const CSV_SAMPLE_DATA = {
   client: {

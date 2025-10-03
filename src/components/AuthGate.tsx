@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { Loader2 } from 'lucide-react';
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -27,8 +28,8 @@ export default function AuthGate({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center text-sm text-gray-500">
-        Checking session...
+      <div className="min-h-[95dvh] flex items-center justify-center text-sm text-gray-500">
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
   }

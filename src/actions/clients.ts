@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { APPWRITE_DB, db, ID } from '@/lib/appwrite';
 import type { Client, Currency } from '@/types/client';
@@ -62,7 +62,10 @@ export async function createClient(data: ClientFormValues) {
   return created;
 }
 
-export async function updateClient(id: string, data: Partial<ClientFormValues>) {
+export async function updateClient(
+  id: string,
+  data: Partial<ClientFormValues>
+) {
   // Map only provided fields
   const mapped: Partial<Client> = {};
   if (data.name !== undefined) mapped.name = data.name;
@@ -71,13 +74,17 @@ export async function updateClient(id: string, data: Partial<ClientFormValues>) 
   if (data.email !== undefined) mapped.email = data.email;
   if (data.phone !== undefined) mapped.phone = data.phone;
   if (data.source !== undefined) mapped.source = data.source;
-  if (data.startDate !== undefined) mapped.startDate = data.startDate.toISOString().split('T')[0];
+  if (data.startDate !== undefined)
+    mapped.startDate = data.startDate.toISOString().split('T')[0];
   if (data.status !== undefined) mapped.status = data.status;
-  if (data.numberOfProjects !== undefined) mapped.numberOfProjects = data.numberOfProjects;
+  if (data.numberOfProjects !== undefined)
+    mapped.numberOfProjects = data.numberOfProjects;
   if (data.totalSpent !== undefined) mapped.totalSpent = data.totalSpent;
-  if (data.totalSpentCurrency !== undefined) mapped.totalSpentCurrency = data.totalSpentCurrency;
+  if (data.totalSpentCurrency !== undefined)
+    mapped.totalSpentCurrency = data.totalSpentCurrency;
   if (data.totalProfit !== undefined) mapped.totalProfit = data.totalProfit;
-  if (data.totalProfitCurrency !== undefined) mapped.totalProfitCurrency = data.totalProfitCurrency;
+  if (data.totalProfitCurrency !== undefined)
+    mapped.totalProfitCurrency = data.totalProfitCurrency;
   if (data.retainer !== undefined) mapped.retainer = data.retainer;
   if (data.notes !== undefined) mapped.notes = data.notes;
 
@@ -142,17 +149,19 @@ export async function createClientAction(formData: FormData): Promise<Client> {
     contact: formDataObj.contact || '',
     phone: formDataObj.phone || '', // Ensure phone is provided
     source: formDataObj.source || 'Website',
-    startDate: formDataObj.startDate ? new Date(formDataObj.startDate) : new Date(),
+    startDate: formDataObj.startDate
+      ? new Date(formDataObj.startDate)
+      : new Date(),
     status: formDataObj.status || 'Active',
     // Ensure other required fields have default values
     numberOfProjects: formDataObj.numberOfProjects ?? 0,
     totalSpent: formDataObj.totalSpent ?? 0,
     totalProfit: formDataObj.totalProfit ?? 0,
-    retainer: formDataObj.retainer ?? 0
+    retainer: formDataObj.retainer ?? 0,
   };
-  
+
   const row = await createClient(clientData);
-  
+
   // Transform the Appwrite row to match the Client type
   const client: Client = {
     id: row.$id,
@@ -179,14 +188,17 @@ export async function createClientAction(formData: FormData): Promise<Client> {
   return client;
 }
 
-export async function updateClientAction(id: string, formData: FormData): Promise<Client> {
+export async function updateClientAction(
+  id: string,
+  formData: FormData
+): Promise<Client> {
   const mapped = parseClientForm(formData);
-  const updated = await db.updateRow({
+  const updated = (await db.updateRow({
     databaseId: APPWRITE_DB.databaseId,
     tableId: APPWRITE_DB.tables.clients,
     rowId: id,
     data: mapped,
-  }) as unknown as Client & { $id: string };
+  })) as unknown as Client & { $id: string };
   revalidatePath('/clients');
   revalidatePath(`/clients/${id}`);
   return {
@@ -209,13 +221,13 @@ export async function updateClientAction(id: string, formData: FormData): Promis
   };
 }
 
-export async function updateClientNotesAction(id: string): Promise<Client> { 
+export async function updateClientNotesAction(id: string): Promise<Client> {
   // Fetch the full client to ensure we have all required fields
   const client = await getClientById(id);
-  
+
   revalidatePath('/clients');
   revalidatePath(`/clients/${id}`);
-  
+
   return {
     id: client.$id,
     name: client.name,

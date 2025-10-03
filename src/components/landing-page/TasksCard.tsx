@@ -54,7 +54,6 @@ export default function TaskManagement() {
       icon: Shield,
       completed: false,
     },
-  
   ]);
 
   const toggleTask = (taskId: number) => {

@@ -1,8 +1,8 @@
-"use server";
+'use server';
 
-import { APPWRITE_DB, db, ID } from "@/lib/appwrite";
-import { Query } from "appwrite";
-import type { AttendanceRecord } from "@/types";
+import { APPWRITE_DB, db, ID } from '@/lib/appwrite';
+import { Query } from 'appwrite';
+import type { AttendanceRecord } from '@/types';
 
 export async function markAttendance(
   employeeId: string,
@@ -14,8 +14,8 @@ export async function markAttendance(
       databaseId: APPWRITE_DB.databaseId,
       tableId: APPWRITE_DB.tables.attendance,
       queries: [
-        Query.equal("employee", employeeId),
-        Query.equal("date", attendance.date),
+        Query.equal('employee', employeeId),
+        Query.equal('date', attendance.date),
       ],
     });
 
@@ -42,14 +42,17 @@ export async function markAttendance(
 
     return att as unknown as AttendanceRecord;
   } catch (error: unknown) {
-    if (error instanceof Error && error.message === "Unique constraint violation") {
+    if (
+      error instanceof Error &&
+      error.message === 'Unique constraint violation'
+    ) {
       // Unique constraint violation — fetch and update instead
       const existing = await db.listRows({
         databaseId: APPWRITE_DB.databaseId,
         tableId: APPWRITE_DB.tables.attendance,
         queries: [
-          Query.equal("employee", employeeId),
-          Query.equal("date", attendance.date),
+          Query.equal('employee', employeeId),
+          Query.equal('date', attendance.date),
         ],
       });
 
@@ -66,7 +69,7 @@ export async function markAttendance(
       }
     }
 
-    console.error("Error marking attendance:", error);
+    console.error('Error marking attendance:', error);
     throw error;
   }
 }
@@ -77,14 +80,14 @@ export async function getAttendance(employeeId: string) {
       databaseId: APPWRITE_DB.databaseId,
       tableId: APPWRITE_DB.tables.attendance,
       queries: [
-        Query.equal("employee", employeeId), // filter by employee
-        Query.orderDesc("date"),             // optional: newest first
+        Query.equal('employee', employeeId), // filter by employee
+        Query.orderDesc('date'), // optional: newest first
       ],
     });
 
     return records.rows as unknown as AttendanceRecord[];
   } catch (error: unknown) {
-    console.error("Error fetching attendance:", error);
+    console.error('Error fetching attendance:', error);
     throw error;
   }
 }

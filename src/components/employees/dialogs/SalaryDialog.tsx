@@ -58,12 +58,10 @@ export default function SalaryDialog({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Base Salary</label>
-                <Input
-                  type="number"
-                  value={employee?.salary || 0}
-                  disabled
-                />
+                <label className="block text-sm font-medium mb-1">
+                  Base Salary
+                </label>
+                <Input type="number" value={employee?.salary || 0} disabled />
               </div>
             </div>
             <div>
@@ -80,8 +78,8 @@ export default function SalaryDialog({
             </div>
             <div className="bg-yellow-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">
-                This will mark the salary as paid for {employee?.name} for {month}.
-                Amount: {employee?.salary?.toLocaleString()}
+                This will mark the salary as paid for {employee?.name} for{' '}
+                {month}. Amount: {employee?.salary?.toLocaleString()}
                 {bonusAmount > 0 && (
                   <> + Bonus: {bonusAmount.toLocaleString()}</>
                 )}

@@ -28,7 +28,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon, DollarSign, FileText, User, Building2, Receipt, Hash } from 'lucide-react';
+import {
+  CalendarIcon,
+  Coins,
+  FileText,
+  User,
+  Building2,
+  Receipt,
+  Hash,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Invoice } from '@/types/invoice';
@@ -57,12 +65,12 @@ export type SnakeInvoiceInitial = {
   company_name?: string;
   invoice_number?: string;
   issue_date?: string; // YYYY-MM-DD
-  due_date?: string;   // YYYY-MM-DD
-  service_type?: typeof SERVICE_TYPES[number];
+  due_date?: string; // YYYY-MM-DD
+  service_type?: (typeof SERVICE_TYPES)[number];
   description?: string;
   amount?: number;
-  currency?: typeof CURRENCIES[number];
-  status?: typeof INVOICE_STATUS[number];
+  currency?: (typeof CURRENCIES)[number];
+  status?: (typeof INVOICE_STATUS)[number];
   notes?: string;
   paid_date?: string;
 };
@@ -72,7 +80,7 @@ type InvoiceFormInitial = {
   company_name?: string;
   invoice_number?: string;
   issue_date?: string; // ISO YYYY-MM-DD
-  due_date?: string;   // ISO YYYY-MM-DD
+  due_date?: string; // ISO YYYY-MM-DD
   service_type?: string;
   description?: string;
   amount?: number;
@@ -80,16 +88,27 @@ type InvoiceFormInitial = {
   status?: string;
   notes?: string;
   paid_date?: string;
-}
+};
 interface InvoiceFormProps {
-  initialData?: Partial<Invoice> | Partial<SnakeInvoiceInitial> | undefined | null | InvoiceFormInitial;
+  initialData?:
+    | Partial<Invoice>
+    | Partial<SnakeInvoiceInitial>
+    | undefined
+    | null
+    | InvoiceFormInitial;
   onSubmit: (data: InvoiceFormValues) => Promise<void>;
   isLoading?: boolean;
   mode: 'create' | 'edit';
   clients?: Array<{ id: string; name: string; company?: string }>;
 }
 
-export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = [] }: InvoiceFormProps) {
+export function InvoiceForm({
+  initialData,
+  onSubmit,
+  isLoading,
+  mode,
+  clients = [],
+}: InvoiceFormProps) {
   const snake = (initialData ?? {}) as Partial<SnakeInvoiceInitial>;
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
@@ -98,8 +117,10 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
       client_name: snake.client_name || '',
       company_name: snake.company_name || '',
       invoice_number: snake.invoice_number || '',
-      issue_date: snake.issue_date ? new Date(new Date(snake.issue_date).toLocaleDateString()) : new Date(new Date().toLocaleDateString()),
-      due_date: snake.due_date ? new Date(new Date(snake.due_date).toLocaleDateString()) : new Date(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()), // 30 days from now
+      issue_date: snake.issue_date ? new Date(snake.issue_date) : new Date(),
+      due_date: snake.due_date
+        ? new Date(snake.due_date)
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       service_type: snake.service_type || 'Web Development',
       description: snake.description || '',
       amount: snake.amount ?? 0,
@@ -110,7 +131,7 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
   });
 
   const handleClientChange = (clientId: string) => {
-    const selectedClient = clients.find(c => c.id === clientId);
+    const selectedClient = clients.find((c) => c.id === clientId);
     if (selectedClient) {
       form.setValue('client_name', selectedClient.name);
       form.setValue('company_name', selectedClient.company || '');
@@ -126,7 +147,7 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
             <User className="h-4 w-4" />
             Client Information
           </div>
-          
+
           <FormField
             control={form.control}
             name="client_id"
@@ -136,10 +157,13 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
                   <User className="h-4 w-4" />
                   Select Client
                 </FormLabel>
-                <Select onValueChange={(value) => {
-                  field.onChange(value);
-                  handleClientChange(value);
-                }} defaultValue={field.value}>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    handleClientChange(value);
+                  }}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a client" />
@@ -223,7 +247,10 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -277,9 +304,7 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) =>
-                          date < new Date('1900-01-01')
-                        }
+                        disabled={(date) => date < new Date('1900-01-01')}
                       />
                     </PopoverContent>
                   </Popover>
@@ -321,9 +346,7 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) =>
-                          date < new Date('1900-01-01')
-                        }
+                        disabled={(date) => date < new Date('1900-01-01')}
                       />
                     </PopoverContent>
                   </Popover>
@@ -339,7 +362,10 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Service Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select service type" />
@@ -387,7 +413,7 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
         {/* Amount Information */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700 border-b pb-2">
-            <DollarSign className="h-4 w-4" />
+            <Coins className="h-4 w-4" />
             Amount Information
           </div>
 
@@ -398,7 +424,7 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
+                    <Coins className="h-4 w-4" />
                     Amount
                   </FormLabel>
                   <FormControl>
@@ -408,7 +434,9 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
                       step="0.01"
                       placeholder="0.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -422,7 +450,10 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select currency" />
@@ -470,8 +501,16 @@ export function InvoiceForm({ initialData, onSubmit, isLoading, mode, clients = 
         />
 
         <div className="flex justify-end pt-4">
-          <Button type="submit" disabled={isLoading} className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-            {isLoading ? 'Saving...' : mode === 'create' ? 'Create Invoice' : 'Update Invoice'}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+          >
+            {isLoading
+              ? 'Saving...'
+              : mode === 'create'
+                ? 'Create Invoice'
+                : 'Update Invoice'}
           </Button>
         </div>
       </form>

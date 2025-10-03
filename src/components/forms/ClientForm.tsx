@@ -29,7 +29,16 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { CalendarIcon, Building2, Mail, Phone, User, DollarSign, FileText, Target } from 'lucide-react';
+import {
+  CalendarIcon,
+  Building2,
+  Mail,
+  Phone,
+  User,
+  Coins,
+  FileText,
+  Target,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Client } from '@/types/client';
@@ -62,7 +71,12 @@ interface ClientFormProps {
   mode: 'create' | 'edit';
 }
 
-export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFormProps) {
+export function ClientForm({
+  initialData,
+  onSubmit,
+  isLoading,
+  mode,
+}: ClientFormProps) {
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
@@ -72,13 +86,15 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
       email: initialData?.email || '',
       phone: initialData?.phone || '',
       source: initialData?.source || 'Website',
-      startDate: initialData?.startDate ? new Date(initialData.startDate) : new Date(),
+      startDate: initialData?.startDate
+        ? new Date(initialData.startDate)
+        : new Date(),
       status: initialData?.status || 'Active',
       numberOfProjects: initialData?.numberOfProjects || undefined,
       totalSpent: initialData?.totalSpent || undefined,
-      totalSpentCurrency: (initialData?.totalSpentCurrency) || 'PKR',
+      totalSpentCurrency: initialData?.totalSpentCurrency || 'PKR',
       totalProfit: initialData?.totalProfit || undefined,
-      totalProfitCurrency: (initialData?.totalProfitCurrency) || 'PKR',
+      totalProfitCurrency: initialData?.totalProfitCurrency || 'PKR',
       retainer: initialData?.retainer || undefined,
       notes: initialData?.notes || '',
     },
@@ -93,7 +109,7 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
             <User className="h-4 w-4" />
             Basic Information
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -158,7 +174,11 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
                     Email
                   </FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="email@example.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="email@example.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,7 +217,10 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
                     <Target className="h-4 w-4" />
                     Source
                   </FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select source" />
@@ -254,7 +277,6 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
                         disabled={(date) =>
                           date > new Date() || date < new Date('1900-01-01')
                         }
-
                       />
                     </PopoverContent>
                   </Popover>
@@ -269,7 +291,10 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -293,7 +318,7 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
         {/* Financial Information */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700 border-b pb-2">
-            <DollarSign className="h-4 w-4" />
+            <Coins className="h-4 w-4" />
             Financial Information
           </div>
 
@@ -345,7 +370,10 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Currency" />
@@ -393,7 +421,10 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Currency" />
@@ -462,8 +493,16 @@ export function ClientForm({ initialData, onSubmit, isLoading, mode }: ClientFor
         />
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button type="submit" disabled={isLoading} className="bg-yellow-400 hover:bg-yellow-500 text-gray-900">
-            {isLoading ? 'Saving...' : mode === 'create' ? 'Create Client' : 'Update Client'}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+          >
+            {isLoading
+              ? 'Saving...'
+              : mode === 'create'
+                ? 'Create Client'
+                : 'Update Client'}
           </Button>
         </div>
       </form>

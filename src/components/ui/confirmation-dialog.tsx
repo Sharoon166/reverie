@@ -27,11 +27,11 @@ interface ConfirmationDialogProps {
 export default function ConfirmationDialog({
   open,
   onOpenChange,
-  title = "Are you absolutely sure?",
+  title = 'Are you absolutely sure?',
   description,
-  confirmText = "Delete",
-  cancelText = "Cancel",
-  variant = "destructive",
+  confirmText = 'Delete',
+  cancelText = 'Cancel',
+  variant = 'destructive',
   icon = <CircleAlertIcon className="opacity-80" size={16} />,
   onConfirm,
   onCancel,
@@ -59,18 +59,12 @@ export default function ConfirmationDialog({
           </div>
           {title}
         </DialogTitle>
-        <DialogDescription>
-          {description}
-        </DialogDescription>
+        <DialogDescription>{description}</DialogDescription>
         <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
             {cancelText}
           </Button>
-          <Button 
+          <Button
             variant={variant}
             onClick={handleConfirm}
             disabled={isLoading}

@@ -281,8 +281,7 @@ export default function EmployeeTable({
             </div>
           </div>
         ),
-        size: 300
-        
+        size: 300,
       },
       {
         header: 'Position',
@@ -323,11 +322,10 @@ export default function EmployeeTable({
         header: 'Salary Status',
         id: 'salary_status',
         cell: ({ row }) => {
-
-          const currentMonth = format(new Date(), "yyyy-MM");
+          const currentMonth = format(new Date(), 'yyyy-MM');
 
           const isPaid = (row.original.salaryPayments ?? []).some((p) => {
-            const paymentMonth = format(new Date(p.month), "yyyy-MM");
+            const paymentMonth = format(new Date(p.month), 'yyyy-MM');
             return paymentMonth === currentMonth;
           });
           return (
@@ -376,10 +374,12 @@ export default function EmployeeTable({
   );
 
   const handleDeleteRows = async () => {
-    const selectedRows = table.getSelectedRowModel().rows.map(r => r.original.$id)
+    const selectedRows = table
+      .getSelectedRowModel()
+      .rows.map((r) => r.original.$id);
 
     for await (const id of selectedRows) {
-      if (id) deleteEmployee(id)
+      if (id) deleteEmployee(id);
     }
     table.resetRowSelection();
   };
@@ -735,7 +735,7 @@ export default function EmployeeTable({
                         <div
                           className={cn(
                             header.column.getCanSort() &&
-                            'flex h-full cursor-pointer items-center justify-between gap-2 select-none'
+                              'flex h-full cursor-pointer items-center justify-between gap-2 select-none'
                           )}
                           onClick={header.column.getToggleSortingHandler()}
                           onKeyDown={(e) => {
@@ -867,8 +867,8 @@ export default function EmployeeTable({
               {Math.min(
                 Math.max(
                   table.getState().pagination.pageIndex *
-                  table.getState().pagination.pageSize +
-                  table.getState().pagination.pageSize,
+                    table.getState().pagination.pageSize +
+                    table.getState().pagination.pageSize,
                   0
                 ),
                 table.getRowCount()

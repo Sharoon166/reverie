@@ -1,6 +1,5 @@
 'use client';
 
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AnimatedArrow from '../AnimatedArrow';
 
@@ -29,7 +28,7 @@ export function CircularProgressWidget() {
         <CardTitle className="text-base font-medium text-gray-700">
           Progress
         </CardTitle>
-        <AnimatedArrow/>
+        <AnimatedArrow />
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col items-center space-y-2">

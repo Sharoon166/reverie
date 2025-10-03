@@ -19,8 +19,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const data: Partial<Client> = body;
-    if (!data.name || !data.contact || !data.source || !data.startDate || !data.status) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (
+      !data.name ||
+      !data.contact ||
+      !data.source ||
+      !data.startDate ||
+      !data.status
+    ) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
     // Map to ClientFormValues shape with correct field names
@@ -46,7 +55,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(created, { status: 201 });
   } catch (error: unknown) {
     console.error('POST /api/clients error:', error);
-    const status = error instanceof Error && error.message.includes('401') ? 401 : 500;
+    const status =
+      error instanceof Error && error.message.includes('401') ? 401 : 500;
     return NextResponse.json({ error: 'Failed to create client' }, { status });
   }
 }

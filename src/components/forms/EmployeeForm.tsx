@@ -35,7 +35,7 @@ import {
   Mail,
   Phone,
   User,
-  DollarSign,
+  Coins,
   FileText,
   MapPin,
   Shield,
@@ -44,7 +44,11 @@ import {
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Employee } from '@/types/employee';
-import { DEPARTMENTS, EMPLOYEE_STATUS, EMPLOYEE_POSITIONS } from '@/lib/constants';
+import {
+  DEPARTMENTS,
+  EMPLOYEE_STATUS,
+  EMPLOYEE_POSITIONS,
+} from '@/lib/constants';
 import AvatarUploader from '../AvatarUploader';
 
 const employeeFormSchema = z.object({
@@ -104,21 +108,30 @@ export function EmployeeForm({
     },
   });
 
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField control={form.control} name='avatar' render={() => (
-          <FormItem>
-            <FormLabel>Avatar</FormLabel>
-            <FormControl>
-              <Controller control={form.control} name="avatar" render={({ field: { onChange } }) => (
-                <AvatarUploader label='Upload Avatar' onFileChange={file => onChange(file)} />
-
-              )} />
-            </FormControl>
-          </FormItem>
-        )} />
+        <FormField
+          control={form.control}
+          name="avatar"
+          render={() => (
+            <FormItem>
+              <FormLabel>Avatar</FormLabel>
+              <FormControl>
+                <Controller
+                  control={form.control}
+                  name="avatar"
+                  render={({ field: { onChange } }) => (
+                    <AvatarUploader
+                      label="Upload Avatar"
+                      onFileChange={(file) => onChange(file)}
+                    />
+                  )}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
         {/* Personal Information */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700 border-b pb-2">
@@ -166,7 +179,7 @@ export function EmployeeForm({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="phone"
@@ -245,7 +258,11 @@ export function EmployeeForm({
                       min="0"
                       placeholder="Years of experience"
                       {...field}
-                      value={field.value === undefined || Number.isNaN(field.value) ? '' : field.value}
+                      value={
+                        field.value === undefined || Number.isNaN(field.value)
+                          ? ''
+                          : field.value
+                      }
                       onChange={(e) => {
                         const v = e.target.value;
                         field.onChange(v === '' ? undefined : Number(v));
@@ -408,7 +425,7 @@ export function EmployeeForm({
         {/* Salary Information */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-medium text-gray-700 border-b pb-2">
-            <DollarSign className="h-4 w-4" />
+            <Coins className="h-4 w-4" />
             Salary Information
           </div>
 
@@ -419,7 +436,7 @@ export function EmployeeForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
+                    <Coins className="h-4 w-4" />
                     Salary
                   </FormLabel>
                   <FormControl>
@@ -429,7 +446,11 @@ export function EmployeeForm({
                       step="0.01"
                       placeholder="0.00"
                       {...field}
-                      value={field.value === undefined || Number.isNaN(field.value) ? '' : field.value}
+                      value={
+                        field.value === undefined || Number.isNaN(field.value)
+                          ? ''
+                          : field.value
+                      }
                       onChange={(e) => {
                         const v = e.target.value;
                         field.onChange(v === '' ? undefined : Number(v));

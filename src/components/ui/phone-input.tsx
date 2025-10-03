@@ -32,9 +32,9 @@ const CustomPhoneInput: React.FC<PhoneInputProps> = ({
         onChange={(phone) => onChange?.(phone)}
         placeholder={placeholder}
         disabled={disabled}
-        inputClass='max-w-full'
+        inputStyle={{ width: '100%' }}
         autocompleteSearch
-        />
+      />
     </div>
   );
 };

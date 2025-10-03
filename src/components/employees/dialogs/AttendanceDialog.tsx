@@ -20,7 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
@@ -57,8 +61,10 @@ export default function AttendanceDialog({
     onSave({
       date: date.toISOString().split('T')[0],
       status,
-      checkInTime: status === 'present' || status === 'late' ? checkInTime : undefined,
-      checkOutTime: status === 'present' || status === 'late' ? checkOutTime : undefined,
+      checkInTime:
+        status === 'present' || status === 'late' ? checkInTime : undefined,
+      checkOutTime:
+        status === 'present' || status === 'late' ? checkOutTime : undefined,
     });
   };
 
@@ -132,7 +138,9 @@ export default function AttendanceDialog({
                     type="time"
                     value={checkInTime}
                     onChange={(e) => setCheckInTime(e.target.value)}
-                    disabled={isLoading || (status !== 'present' && status !== 'late')}
+                    disabled={
+                      isLoading || (status !== 'present' && status !== 'late')
+                    }
                   />
                 </div>
                 <div>
@@ -141,7 +149,9 @@ export default function AttendanceDialog({
                     type="time"
                     value={checkOutTime}
                     onChange={(e) => setCheckOutTime(e.target.value)}
-                    disabled={isLoading || (status !== 'present' && status !== 'late')}
+                    disabled={
+                      isLoading || (status !== 'present' && status !== 'late')
+                    }
                   />
                 </div>
               </div>

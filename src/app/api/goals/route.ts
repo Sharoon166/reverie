@@ -7,16 +7,23 @@ export async function GET() {
     return NextResponse.json(goals);
   } catch (error) {
     console.error('Error fetching goals:', error);
-    return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch goals' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { title, description, targetDate, priority, status } = await request.json();
-    
+    const { title, description, targetDate, priority, status } =
+      await request.json();
+
     if (!title || !targetDate) {
-      return NextResponse.json({ error: 'Title and target date are required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Title and target date are required' },
+        { status: 400 }
+      );
     }
 
     const goalData = {
@@ -25,13 +32,16 @@ export async function POST(request: NextRequest) {
       targetDate,
       priority: priority || 'medium',
       status: status || 'pending',
-      assignedEmployees: []
+      assignedEmployees: [],
     };
 
     const result = await createGoal(goalData);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error creating goal:', error);
-    return NextResponse.json({ error: 'Failed to create goal' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to create goal' },
+      { status: 500 }
+    );
   }
 }

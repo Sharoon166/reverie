@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PaginationProps {
   currentPage: number;
@@ -20,14 +20,18 @@ export default function Pagination({
   canGoNext,
   startIndex,
   endIndex,
-  totalItems
+  totalItems,
 }: PaginationProps) {
   const getVisiblePages = (): (number | string)[] => {
     const delta = 2;
     const range: number[] = [];
     const rangeWithDots: (number | string)[] = [];
 
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
       range.push(i);
     }
 
@@ -81,7 +85,10 @@ export default function Pagination({
         </div>
 
         <div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          <nav
+            className="relative z-0 inline-flex gap-1"
+            aria-label="Pagination"
+          >
             <Button
               variant="outline"
               size="sm"
@@ -100,13 +107,13 @@ export default function Pagination({
                   </span>
                 ) : (
                   <Button
-                    variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => onPageChange(page as number)}
-                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
-                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      currentPage === page
+                        ? 'z-10 bg-yellow-50 hover:bg-yellow-50 border-yellow-500 text-yellow-500'
                         : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                      }`}
+                    }`}
                   >
                     {page}
                   </Button>

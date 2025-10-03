@@ -1,4 +1,4 @@
-'use server'
+'use server';
 
 import { APPWRITE_DB, db, ID } from '@/lib/appwrite';
 import { Query } from 'appwrite';
@@ -32,11 +32,14 @@ const COLLECTION_NAME = 'goals';
 // Helper function to parse form data
 function parseGoalForm(formData: FormData): Partial<GoalFormValues> {
   const get = (k: string) => formData.get(k)?.toString() || '';
-  
+
   // Get assigned employees as an array
   const assignedEmployeesStr = get('assignedEmployees');
-  const assignedEmployees = assignedEmployeesStr 
-    ? assignedEmployeesStr.split(',').map(id => id.trim()).filter(Boolean)
+  const assignedEmployees = assignedEmployeesStr
+    ? assignedEmployeesStr
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean)
     : [];
 
   return {
@@ -45,7 +48,7 @@ function parseGoalForm(formData: FormData): Partial<GoalFormValues> {
     status: (get('status') as GoalStatus) || 'pending',
     targetDate: get('targetDate') || new Date().toISOString(),
     priority: (get('priority') as GoalPriority) || 'Medium',
-    assignedEmployees
+    assignedEmployees,
   };
 }
 
@@ -93,14 +96,13 @@ export async function getAllGoals() {
       APPWRITE_DB.databaseId,
       COLLECTION_NAME,
       [
-        Query.limit(100) // Adjust limit as needed,
+        Query.limit(100), // Adjust limit as needed,
       ]
     );
-    console.log("goalsResponse", goalsResponse)
 
     // Get all unique employee IDs from all goals
     const allEmployeeIds = new Set<string>();
-    goalsResponse.rows.forEach(goal => {
+    goalsResponse.rows.forEach((goal) => {
       if (goal.assignedEmployees && Array.isArray(goal.assignedEmployees)) {
         goal.assignedEmployees.forEach((id: string) => allEmployeeIds.add(id));
       }
@@ -114,32 +116,37 @@ export async function getAllGoals() {
         'employees', // Adjust if your employees table has a different name
         [
           Query.equal('$id', Array.from(allEmployeeIds)),
-          Query.select(['$id', 'name', 'email'])
+          Query.select(['$id', 'name', 'email']),
         ]
       );
 
       // Create a map of employee ID to employee data
-      employees = employeesResponse.rows.reduce((acc, emp) => ({
-        ...acc,
-        [emp.$id]: {
-          id: emp.$id,
-          name: emp.name || 'Unknown Employee',
-          email: emp.email || ''
-        }
-      }), {} as Record<string, EmployeeOption>);
+      employees = employeesResponse.rows.reduce(
+        (acc, emp) => ({
+          ...acc,
+          [emp.$id]: {
+            id: emp.$id,
+            name: emp.name || 'Unknown Employee',
+            email: emp.email || '',
+          },
+        }),
+        {} as Record<string, EmployeeOption>
+      );
     }
 
     // Process goals with employee data
-    const goals = goalsResponse.rows.map(goal => {
-      const assignedEmployees = Array.isArray(goal.assignedEmployees) ? goal.assignedEmployees : [];
+    const goals = goalsResponse.rows.map((goal) => {
+      const assignedEmployees = Array.isArray(goal.assignedEmployees)
+        ? goal.assignedEmployees
+        : [];
 
       return {
         ...goal,
         assignedEmployees,
         // Add employee data for easy access in the UI
         assignedEmployeesData: assignedEmployees
-          .map(id => employees[id])
-          .filter(Boolean) as EmployeeOption[]
+          .map((id) => employees[id])
+          .filter(Boolean) as EmployeeOption[],
       };
     });
 
@@ -159,7 +166,9 @@ export async function getGoalById(id: string) {
       id
     );
 
-    const assignedEmployees = Array.isArray(response.assignedEmployees) ? response.assignedEmployees : [];
+    const assignedEmployees = Array.isArray(response.assignedEmployees)
+      ? response.assignedEmployees
+      : [];
     let assignedEmployeesData: EmployeeOption[] = [];
 
     // If there are assigned employees, fetch their details
@@ -169,7 +178,7 @@ export async function getGoalById(id: string) {
         'employees',
         [
           Query.equal('$id', assignedEmployees),
-          Query.select(['$id', 'name', 'email'])
+          Query.select(['$id', 'name', 'email']),
         ]
       );
 
@@ -177,7 +186,7 @@ export async function getGoalById(id: string) {
       assignedEmployeesData = employeesResponse.rows.map((emp) => ({
         id: emp.$id,
         name: emp.name || 'Unknown Employee',
-        email: emp.email || ''
+        email: emp.email || '',
       }));
     }
 
@@ -185,7 +194,7 @@ export async function getGoalById(id: string) {
     const goal = {
       ...response,
       assignedEmployees,
-      assignedEmployeesData
+      assignedEmployeesData,
     };
 
     return goal as unknown as Goal;
@@ -207,9 +216,9 @@ export async function createGoal(goal: GoalFormValues) {
       priority: goal.priority || 'medium',
       status: goal.status || 'pending',
       // Ensure assignedEmployees is always an array of strings
-      assignedEmployees: Array.isArray(goal.assignedEmployees) 
-        ? goal.assignedEmployees 
-        : []
+      assignedEmployees: Array.isArray(goal.assignedEmployees)
+        ? goal.assignedEmployees
+        : [],
     };
 
     console.log('Prepared goal data for creation:', goalData);
@@ -239,8 +248,8 @@ export async function updateGoal(id: string, goal: Partial<GoalFormValues>) {
     // Handle assignedEmployees specially if it exists in the update
     if ('assignedEmployees' in goal) {
       // Ensure assignedEmployees is always an array of strings
-      updateData.assignedEmployees = Array.isArray(goal.assignedEmployees) 
-        ? goal.assignedEmployees 
+      updateData.assignedEmployees = Array.isArray(goal.assignedEmployees)
+        ? goal.assignedEmployees
         : [];
     }
 
@@ -263,11 +272,7 @@ export async function updateGoal(id: string, goal: Partial<GoalFormValues>) {
 
 export async function deleteGoal(id: string) {
   try {
-    await db.deleteRow(
-      APPWRITE_DB.databaseId,
-      COLLECTION_NAME,
-      id
-    );
+    await db.deleteRow(APPWRITE_DB.databaseId, COLLECTION_NAME, id);
     return { success: true };
   } catch (error) {
     console.error(`Error deleting goal ${id}:`, error);
@@ -281,9 +286,7 @@ export async function getGoalsByStatus(status: GoalStatus) {
     const response = await db.listRows(
       APPWRITE_DB.databaseId,
       COLLECTION_NAME,
-      [
-        Query.equal('status', status)
-      ]
+      [Query.equal('status', status)]
     );
     return response.rows as unknown as Goal[];
   } catch (error) {
@@ -296,10 +299,11 @@ export async function getGoalsByOwner(ownerId: string) {
   try {
     // First get all goals
     const allGoals = await getAllGoals();
-    
+
     // Filter goals where the owner is in the assignedEmployees array
-    return allGoals.filter(goal => 
-      goal.assignedEmployees && goal.assignedEmployees.includes(ownerId)
+    return allGoals.filter(
+      (goal) =>
+        goal.assignedEmployees && goal.assignedEmployees.includes(ownerId)
     );
   } catch (error) {
     console.error('Error getting goals by owner:', error);
@@ -322,14 +326,14 @@ export async function getEmployees(): Promise<EmployeeOption[]> {
       [
         Query.limit(100),
         Query.orderAsc('name'),
-        Query.select(['$id', 'name', 'email'])
+        Query.select(['$id', 'name', 'email']),
       ]
     );
 
     const employees = response.rows.map((employee) => ({
       id: employee.$id,
       name: employee.name || 'Unnamed Employee',
-      email: employee.email || 'No email'
+      email: employee.email || 'No email',
     }));
 
     return employees;
