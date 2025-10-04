@@ -2,6 +2,7 @@
 
 import { APPWRITE_DB, db } from '@/lib/appwrite';
 import { SalaryPayment } from '@/types';
+import { getOrCreateCurrentQuarter } from '@/utils/quarterCreation';
 import { Query } from 'appwrite';
 
 // Base interface that matches Appwrite's Row type
@@ -54,8 +55,9 @@ interface DashboardStats {
   profitMargin: number;
   cashOnHand: number;
   activeClients: number;
-  pendingTasks: number;
-  teamPerformance: number;
+  invoicesPaid: number;
+  totalExpenses: number;
+  totalSalaries: number;
 }
 
 // Helper functions for quarter calculations
@@ -99,22 +101,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     profitMargin: 0,
     cashOnHand: 0,
     activeClients: 0,
-    pendingTasks: 0,
-    teamPerformance: 75, // Default team performance
+    invoicesPaid: 0,
+    totalExpenses: 0,
+    totalSalaries: 0,
   };
 
   try {
+    const currentQuarter = await getOrCreateCurrentQuarter()
     // Get current quarter information
     const { quarter, year } = getCurrentQuarter();
     const { startDate, endDate } = getQuarterDateRange(quarter, year);
     const quarterMonths = getQuarterMonths(quarter, year);
 
-    console.log(
-      `Calculating Cash on Hand for Q${quarter}-${year} (${startDate} to ${endDate})`
-    );
-
     try {
-      console.log('Fetching invoices...');
       // Get all invoices from current quarter, filter paid ones in code
       const allInvoices = (await db.listRows({
         databaseId: APPWRITE_DB.databaseId,
@@ -134,10 +133,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
           return status === 'paid' || hasPaidDate;
         }),
       };
-
-      console.log(
-        `Found ${allInvoices.rows?.length || 0} total invoices, ${paidInvoices.rows.length} paid`
-      );
 
       // Get expenses from current quarter
       const quarterExpenses = (await db.listRows({
@@ -169,10 +164,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         }),
       };
 
-      console.log(
-        `Found ${allSalaryPayments.rows?.length || 0} total salary payments, ${salaryPayments.rows.length} for current quarter`
-      );
-
       // Get all clients, filter active ones in code
       const allClients = (await db.listRows({
         databaseId: APPWRITE_DB.databaseId,
@@ -189,10 +180,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
           );
         }),
       };
-
-      console.log(
-        `Found ${allClients.rows?.length || 0} total clients, ${clients.rows.length} active`
-      );
 
       // Calculate revenue from PAID invoices in current quarter
       const quarterlyRevenue = (paidInvoices.rows || []).reduce(
@@ -234,54 +221,29 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         0
       );
 
-      // Calculate Cash on Hand: Revenue - (Expenses + Salaries)
-      const cashOnHand = Math.max(
-        0,
-        quarterlyRevenue - (totalExpenses + totalSalaries)
-      );
+      // Calculate Cash on Hand: Invoices Paid - Salaries - Expenses
+      const cashOnHand = quarterlyRevenue - totalExpenses - totalSalaries
 
       // Calculate profit and profit margin
       const profit = quarterlyRevenue - totalExpenses - totalSalaries;
       const profitMargin =
         quarterlyRevenue > 0 ? (profit / quarterlyRevenue) * 100 : 0;
 
-      // Calculate team performance based on tasks if available
-      let pendingTasks = 0;
-      let teamPerformance = 0;
-
-      try {
-        // Replace with actual task query if you have a tasks table
-        // For now, use placeholder values
-        pendingTasks = 5; // Placeholder
-        teamPerformance = 75; // Placeholder
-      } catch (error) {
-        console.warn('Failed to fetch tasks for team performance', error);
-        pendingTasks = 5; // Fallback placeholder
-        teamPerformance = 75; // Fallback placeholder
-      }
-
-      console.log(`Q${quarter}-${year} Financial Summary:`, {
-        revenue: quarterlyRevenue,
-        expenses: totalExpenses,
-        salaries: totalSalaries,
-        cashOnHand,
-        profit,
-      });
-
       return {
         quarterlyRevenue,
         profitMargin: parseFloat(profitMargin.toFixed(1)),
         cashOnHand,
         activeClients: clients.rows.length,
-        pendingTasks,
-        teamPerformance,
+        invoicesPaid: paidInvoices.rows.length,
+        totalExpenses,
+        totalSalaries
       };
     } catch (error) {
       console.error('Error in getDashboardStats:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
       });
-      
+
       // Log the specific error for debugging
       if (error instanceof Error) {
         console.error('Error details:', {
@@ -290,13 +252,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
           stack: error.stack,
         });
       }
-      
+
       // Return default values instead of throwing to prevent UI breakage
       return defaultStats;
     }
   } catch (error) {
     console.error('Unexpected error in getDashboardStats:', error);
-    
+
     // Log the full error for debugging
     if (error instanceof Error) {
       console.error('Unexpected error details:', {
@@ -305,7 +267,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         stack: error.stack,
       });
     }
-    
+
     // Return default values instead of throwing to prevent UI breakage
     return defaultStats;
   }
@@ -422,135 +384,143 @@ export async function getQuickStats() {
 }
 
 export async function getDashboardKPIs(): Promise<KPI[]> {
-  // Default KPI values in case of error
-  const defaultKPIs: KPI[] = [
-    {
-      id: 'revenue',
-      name: 'Quarterly Revenue',
-      type: 'currency',
-      currentValue: 0,
-      targetValue: 0,
-      change: 0,
-      changeType: 'decrease',
-      icon: 'Coins',
-      progress: 0,
-      color: 'bg-gray-500',
-      description: 'Total revenue for the current quarter',
-    },
-    // Add more default KPIs as needed
-  ];
-
   try {
-    const stats = await getDashboardStats();
-    
-    // If we got default stats (error case), return default KPIs
-    if (stats.quarterlyRevenue === 0 && stats.activeClients === 0) {
-      console.warn('Using default KPIs due to missing data');
-      return defaultKPIs;
-    }
+    const quarter = await getOrCreateCurrentQuarter();
+    const [stats, allClients] = await Promise.all([
+      getDashboardStats(),
+      // Get all clients to calculate monthly retainer revenue
+      db.listRows({
+        databaseId: APPWRITE_DB.databaseId,
+        tableId: APPWRITE_DB.tables.clients,
+        queries: [Query.limit(1000)],
+      }) as Promise<{ rows: Client[] }>,
+    ]);
+
+    const now = new Date();
+    const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
+    const currentYear = now.getFullYear();
+
+    // Calculate derived metrics based on available data
+    const income = stats.quarterlyRevenue;
+
+    // Since we don't have direct access to salaries and expenses separately,
+    // we'll use the profit margin to estimate expenses
+    const expenses = income * (1 - stats.profitMargin / 100);
+    const profit = income - expenses;
+
+    // Calculate monthly retainer revenue from clients
+    const monthlyRetainerRevenue = allClients.rows.reduce(
+      (sum, client) => sum + (Number(client.retainer) || 0),
+      0
+    );
+
+    // Calculate target achievement (assuming a 10% growth target from previous quarter)
+    const previousQuarterRevenue = income * 0.9; // Simulated previous quarter
+    const revenueTarget = quarter.revenueTarget || 0;
+    const revenueAchievement = income > 0 ? Math.min(100, (income / revenueTarget) * 100) : 0;
+
+    // Calculate retainer target achievement (assuming 10% growth target)
+    const previousMonthRetainer = monthlyRetainerRevenue * 0.9;
+    const retainerTarget = quarter.retainerRevenueTarget || 0;
+    const retainerAchievement = monthlyRetainerRevenue > 0
+      ? Math.min(100, (monthlyRetainerRevenue / retainerTarget) * 100)
+      : 0;
 
     return [
+      // 1. Monthly Retainer Revenue
       {
-        id: 'revenue',
+        id: 'monthly-retainer',
+        name: 'Monthly Retainer Revenue',
+        type: 'currency',
+        currentValue: monthlyRetainerRevenue,
+        targetValue: retainerTarget,
+        change: 10, // Placeholder for growth percentage
+        changeType: monthlyRetainerRevenue >= previousMonthRetainer ? 'increase' : 'decrease',
+        icon: 'Coins',
+        progress: retainerAchievement,
+        color: retainerAchievement >= 100 ? 'bg-green-500' : 'bg-blue-500',
+        description: `${allClients.rows.length} active clients`,
+      },
+      // 2. Quarterly Revenue
+      {
+        id: 'quarterly-revenue',
         name: 'Quarterly Revenue',
         type: 'currency',
-        currentValue: stats.quarterlyRevenue,
-        targetValue: stats.quarterlyRevenue * 1.1, // 10% growth target
-        change: 12.5,
-        changeType: 'increase',
-        icon: 'Coins',
-        progress: Math.min(
-          100,
-          (stats.quarterlyRevenue / (stats.quarterlyRevenue * 1.1)) * 100
-        ),
-        color: 'bg-green-500',
-        description: 'Total revenue for the current quarter',
+        currentValue: income,
+        targetValue: revenueTarget,
+        change: 10, // Placeholder for growth percentage
+        changeType: income >= previousQuarterRevenue ? 'increase' : 'decrease',
+        icon: 'DollarSign',
+        progress: revenueAchievement,
+        color: revenueAchievement >= 100 ? 'bg-green-500' : 'bg-blue-500',
+        description: `Q${currentQuarter} ${currentYear} Total Revenue`,
       },
+      // 2. Profit & Loss
       {
-        id: 'profit-margin',
-        name: 'Profit Margin',
-        type: 'percentage',
-        currentValue: stats.profitMargin,
-        targetValue: stats.profitMargin * 1.05, // 5% improvement target
-        change: 2.3,
-        changeType: 'increase',
+        id: 'profit-loss',
+        name: 'Quarterly Profit/Loss',
+        type: 'currency',
+        currentValue: profit,
+        targetValue: income * 0.2, // 20% profit target
+        change: stats.profitMargin - 20, // vs target profit margin
+        changeType: profit >= 0 ? 'increase' : 'decrease',
         icon: 'TrendingUp',
-        progress: Math.min(
-          100,
-          (stats.profitMargin / (stats.profitMargin * 1.05)) * 100
-        ),
-        color: 'bg-blue-500',
-        description: 'Profit margin for the current quarter',
+        progress: income > 0 ? Math.min(100, (profit / (income * 0.2)) * 100) : 0,
+        color: profit >= 0 ? 'bg-green-500' : 'bg-red-500',
+        description: `Q${currentQuarter} ${currentYear} Profit/Loss (${stats.profitMargin.toFixed(1)}% margin)`,
       },
+      // 3. Cash on Hand (Quarterly View)
       {
         id: 'cash-on-hand',
         name: 'Cash on Hand',
         type: 'currency',
         currentValue: stats.cashOnHand,
-        targetValue: stats.cashOnHand * 1.15, // 15% growth target
-        change: 8.7,
-        changeType: 'increase',
-        icon: 'Coins',
-        progress: Math.min(
-          100,
-          (stats.cashOnHand / (stats.cashOnHand * 1.15)) * 100
-        ),
-        color: 'bg-green-500',
-        description: 'Available cash reserves',
+        targetValue: stats.quarterlyRevenue * 0.3, // Target 30% of quarterly revenue as cash reserve
+        change: stats.quarterlyRevenue > 0 
+          ? ((stats.cashOnHand - (stats.quarterlyRevenue * 0.3)) / (stats.quarterlyRevenue * 0.3)) * 100 
+          : 0,
+        changeType: stats.cashOnHand >= (stats.quarterlyRevenue * 0.3) ? 'increase' : 'decrease',
+        icon: 'Wallet',
+        progress: stats.quarterlyRevenue > 0
+          ? Math.min(100, (stats.cashOnHand / (stats.quarterlyRevenue * 0.3)) * 100)
+          : 0,
+        color: stats.cashOnHand >= (stats.quarterlyRevenue * 0.3) ? 'bg-green-500' : 'bg-amber-500',
+        description: `Q${currentQuarter} ${currentYear} Cash Position (Invoices – Expenses – Salaries)`
       },
+      // 4. Active Clients
       {
         id: 'active-clients',
         name: 'Active Clients',
         type: 'number',
         currentValue: stats.activeClients,
-        targetValue: stats.activeClients + 5, // 5 more clients target
-        change: 3.2,
+        targetValue: stats.activeClients + 5, // Target 5 more active clients
+        change: 5.2, // Placeholder for growth percentage
         changeType: 'increase',
         icon: 'Users',
-        progress: Math.min(
-          100,
-          (stats.activeClients / (stats.activeClients + 5)) * 100
-        ),
+        progress: Math.min(100, (stats.activeClients / (stats.activeClients + 5)) * 100) || 0,
         color: 'bg-blue-500',
-        description: 'Number of active clients',
-      },
-      {
-        id: 'pending-tasks',
-        name: 'Pending Tasks',
-        type: 'number',
-        currentValue: stats.pendingTasks,
-        targetValue: Math.max(0, stats.pendingTasks - 10), // 10 fewer tasks target
-        change: 15.8,
-        changeType: 'decrease',
-        icon: 'CheckCircle2',
-        progress: Math.min(
-          100,
-          ((stats.pendingTasks - 10) / stats.pendingTasks) * 100 || 0
-        ),
-        color: 'bg-yellow-500',
-        description: 'Number of pending tasks',
-      },
-      {
-        id: 'team-performance',
-        name: 'Team Performance',
-        type: 'percentage',
-        currentValue: stats.teamPerformance,
-        targetValue: 90, // 90% target
-        change: 5.2,
-        changeType: 'increase',
-        icon: 'Target',
-        progress: stats.teamPerformance,
-        color:
-          stats.teamPerformance >= 90
-            ? 'bg-green-500'
-            : stats.teamPerformance >= 70
-              ? 'bg-yellow-500'
-              : 'bg-red-500',
-        description: 'Overall team performance score',
-      },
+        description: 'Number of active clients'
+      }
+,
     ];
   } catch (error) {
     console.error('Error in getDashboardKPIs:', error);
-    throw error;
+    // Return default KPIs in case of error
+    return [
+      {
+        id: 'revenue',
+        name: 'Quarterly Revenue',
+        type: 'currency',
+        currentValue: 0,
+        targetValue: 0,
+        change: 0,
+        changeType: 'decrease',
+        icon: 'Coins',
+        progress: 0,
+        color: 'bg-gray-500',
+        description: 'Total revenue for the current quarter',
+      },
+      // Add more default KPIs as needed
+    ];
   }
 }

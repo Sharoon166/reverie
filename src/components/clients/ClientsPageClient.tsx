@@ -117,6 +117,17 @@ export default function ClientsPageClient({
   const acquiredThisQuarter = filteredClients.filter(
     (c) => new Date(c.startDate) >= currentQuarterStart
   ).length;
+  
+  // Calculate high value clients (clients with multiple projects)
+  const highValueClients = filteredClients.filter(
+    (c) => (c.numberOfProjects || 0) > 1
+  ).length;
+  
+  // Calculate monthly retainer revenue
+  const monthlyRetainerRevenue = filteredClients.reduce(
+    (sum, c) => sum + (c.retainer || 0),
+    0
+  );
 
   const quarterlyTotalProjects = filteredClients.reduce((sum, client) => {
     // Assuming client has a projects array with createdAt dates
@@ -567,6 +578,22 @@ export default function ClientsPageClient({
             color="bg-gray-800"
             progress={quarter?.clientAcquisitionTarget ? (acquiredThisQuarter / quarter.clientAcquisitionTarget) * 100 : 0}
             description={`Target: ${quarter?.clientAcquisitionTarget}`}
+          />
+          <KPICard
+            title="High Value Clients"
+            value={`${highValueClients} / ${quarter?.highValueClientsTarget || 0}`}
+            icon={<Users className="h-6 w-6 text-white" />}
+            color="bg-green-600"
+            progress={quarter?.highValueClientsTarget ? (highValueClients / quarter.highValueClientsTarget) * 100 : 0}
+            description={`Target: ${quarter?.highValueClientsTarget || 0}`}
+          />
+          <KPICard
+            title="Monthly Retainers"
+            subtitle="Recurring Revenue"
+            value={formatPakistaniCurrency(monthlyRetainerRevenue)}
+            icon={<Coins className="h-6 w-6 text-gray-900" />}
+            color="bg-blue-500"
+            description={`${filteredClients.length} clients`}
           />
           <KPICard
             title="Total Projects"

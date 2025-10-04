@@ -43,9 +43,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { MoreHorizontal, Plus, Trash2, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 import {
   deleteGoal,
@@ -59,6 +63,7 @@ import {
   type EmployeeOption,
   type GoalFormValues,
 } from '@/actions/goals';
+import { Badge } from '@/components/ui/badge';
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -143,37 +148,59 @@ export default function GoalsPage() {
       setGoals(goalsList);
     } catch (error) {
       console.error('Error fetching goals:', error);
-      toast.error('Failed to fetch goals');
     } finally {
       setLoading(false);
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.title?.trim()) {
+      errors.title = 'Title is required';
+    } else if (formData.title.length > 100) {
+      errors.title = 'Title must be less than 100 characters';
+    }
+
+    if (formData.description && formData.description.length > 1000) {
+      errors.description = 'Description must be less than 1000 characters';
+    }
+
+    if (!formData.targetDate) {
+      errors.targetDate = 'Target date is required';
+    } else if (new Date(formData.targetDate) < new Date()) {
+      errors.targetDate = 'Target date must be in the future';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      // Create form data with proper array handling
       const formDataToSubmit = new FormData();
+      formDataToSubmit.append('title', formData.title || '');
+      formDataToSubmit.append('description', formData.description || '');
+      formDataToSubmit.append('status', formData.status || 'not_started');
+      formDataToSubmit.append('targetDate', formData.targetDate || '');
+      formDataToSubmit.append('priority', formData.priority || 'medium');
 
-      // Add all form fields
-      if (formData.title) formDataToSubmit.append('title', formData.title);
-      if (formData.description)
-        formDataToSubmit.append('description', formData.description);
-      if (formData.status) formDataToSubmit.append('status', formData.status);
-      if (formData.targetDate)
-        formDataToSubmit.append('targetDate', formData.targetDate);
-      if (formData.priority)
-        formDataToSubmit.append('priority', formData.priority);
-
-      // Handle assignedEmployees array
-      if (
-        Array.isArray(formData.assignedEmployees) &&
-        formData.assignedEmployees.length > 0
-      ) {
-        formDataToSubmit.append(
-          'assignedEmployees',
-          formData.assignedEmployees.join(',')
-        );
+      // Handle assigned employees array
+      if (formData.assignedEmployees) {
+        formData.assignedEmployees.forEach((empId) => {
+          formDataToSubmit.append('assignedEmployees[]', empId);
+        });
       }
 
       if (editingGoal) {
@@ -185,28 +212,31 @@ export default function GoalsPage() {
       }
 
       // Reset form and close dialog
-      setFormData({
-        title: '',
-        description: '',
-        status: 'pending',
-        targetDate: format(
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          'yyyy-MM-dd'
-        ),
-        priority: 'medium',
-        assignedEmployees: [],
-      });
-
-      setIsOpen(false);
+      resetForm();
       await fetchGoals();
     } catch (error) {
       console.error('Error saving goal:', error);
-      toast.error('Failed to save goal');
+      toast.error(error instanceof Error ? error.message : 'Failed to save goal');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDeleteClick = (goal: Goal) => {
-    setDeletingGoal({ id: goal.$id, title: goal.title });
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      status: 'pending',
+      targetDate: format(
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        'yyyy-MM-dd'
+      ),
+      priority: 'medium',
+      assignedEmployees: [],
+    });
+    setEditingGoal(null);
+    setFormErrors({});
+    setIsOpen(false);
   };
 
   const confirmDelete = async () => {
@@ -231,7 +261,7 @@ export default function GoalsPage() {
       title: goal.title,
       description: goal.description || '',
       status: goal.status,
-      targetDate: goal.targetDate,
+      targetDate: format(new Date(goal.targetDate), 'yyyy-MM-dd'),
       priority: goal.priority,
       assignedEmployees: goal.assignedEmployees || [],
     });
@@ -246,6 +276,283 @@ export default function GoalsPage() {
           Manage your team&apos;s goals and track their progress.
         </p>
       </div>
+
+      {/* Goal Form Dialog */}
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            resetForm();
+          } else {
+            setIsOpen(true);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-none">
+            <DialogTitle className="text-xl font-semibold">
+              {editingGoal ? 'Edit Goal' : 'Create New Goal'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              {editingGoal
+                ? 'Update the goal details below.'
+                : 'Fill in the details below to create a new goal.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-auto">
+            <ScrollArea className="flex-1 pr-2 -mr-4">
+              <div className="grid gap-4 py-2 pr-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="title" className="text-right">
+                    Title <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="col-span-3 space-y-1">
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => {
+                        setFormData({ ...formData, title: e.target.value });
+                        // Clear error when user starts typing
+                        if (formErrors.title) {
+                          setFormErrors(prev => ({
+                            ...prev,
+                            title: ''
+                          }));
+                        }
+                      }}
+                      className={`w-full ${formErrors.title ? 'border-red-500' : ''}`}
+                      placeholder="Enter goal title"
+                      disabled={isSubmitting}
+                    />
+                    {formErrors.title && (
+                      <p className="text-sm text-red-600">{formErrors.title}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label htmlFor="description" className="text-right mt-2">
+                    Description
+                  </Label>
+                  <div className="col-span-3 space-y-1">
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => {
+                        setFormData({ ...formData, description: e.target.value });
+                        if (formErrors.description) {
+                          setFormErrors(prev => ({
+                            ...prev,
+                            description: ''
+                          }));
+                        }
+                      }}
+                      className={`w-full ${formErrors.description ? 'border-red-500' : ''}`}
+                      rows={3}
+                      placeholder="Add a detailed description of the goal (optional)"
+                      disabled={isSubmitting}
+                    />
+                    <div className="flex justify-between">
+                      {formErrors.description && (
+                        <p className="text-sm text-red-600">{formErrors.description}</p>
+                      )}
+                      <span className={`text-xs ${formData.description ? formData.description.length > 1000 ? 'text-red-600' : 'text-gray-500' : 'text-gray-500'}`}>
+                        {formData.description ? formData.description.length : 0}/1000
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label htmlFor="status" className="text-right mt-2">
+                    Status
+                  </Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, status: value as GoalStatus })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="ongoing">Ongoing</SelectItem>
+                      <SelectItem value="complete">Complete</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label htmlFor="priority" className="text-right mt-2">
+                    Priority
+                  </Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, priority: value as GoalPriority })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label className="text-right mt-2">Target Date</Label>
+                  <div className="col-span-3 space-y-1">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            'w-full justify-start text-left font-normal',
+                            !formData.targetDate && 'text-muted-foreground'
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.targetDate ? (
+                            format(new Date(formData.targetDate), 'PPP')
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.targetDate ? new Date(formData.targetDate) : undefined}
+                          onSelect={(date) =>
+                            setFormData({
+                              ...formData,
+                              targetDate: date ? format(date, 'yyyy-MM-dd') : ''
+                            })
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    {formErrors.targetDate && (
+                      <p className="text-sm text-red-600">{formErrors.targetDate}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label className="text-right mt-2">Assigned To</Label>
+                  <div className="col-span-3 space-y-2">
+                    {employees.length > 0 ? (
+                      <Select
+                        value=""
+                        onValueChange={(value) => {
+                          if (value && !formData.assignedEmployees?.includes(value)) {
+                            setFormData({
+                              ...formData,
+                              assignedEmployees: [
+                                ...(formData.assignedEmployees || []),
+                                value,
+                              ],
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select employee to assign" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees.map((employee) => (
+                            <SelectItem key={employee.id} value={employee.id}>
+                              {employee.name} ({employee.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No employees available
+                      </p>
+                    )}
+                    {formData.assignedEmployees &&
+                      formData.assignedEmployees.length > 0 && (
+                        <>
+                        <div className="mt-2 rounded-md max-h-[100px] overflow-y-auto space-y-2">
+                          {formData.assignedEmployees.map((empId) => {
+                            const employee = employees.find((e) => e.id === empId);
+                            return (
+                              <div
+                                key={empId}
+                                className="flex items-center justify-between p-2 border rounded-md"
+                              >
+                                <span>
+                                  {employee?.name || 'Unknown Employee'}
+                                  <span className="text-xs text-muted-foreground">{employee?.email && ` (${employee.email})`}</span>
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className='bg-destructive/10 hover:bg-destructive text-destructive hover:text-white'
+                                  onClick={() =>
+                                    setFormData({
+                                      ...formData,
+                                      assignedEmployees:
+                                        formData.assignedEmployees?.filter(
+                                          (id) => id !== empId
+                                        ) || [],
+                                    })
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        </>
+
+                      )}
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+
+            <DialogFooter className="flex-none pt-4 border-t mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resetForm}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="relative"
+              >
+                {isSubmitting && (
+                  <span className="absolute left-3">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </span>
+                )}
+                {isSubmitting
+                  ? editingGoal
+                    ? 'Updating...'
+                    : 'Creating...'
+                  : editingGoal
+                    ? 'Update Goal'
+                    : 'Create Goal'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
@@ -322,7 +629,7 @@ export default function GoalsPage() {
                       </TableCell>
                       <TableCell>
                         {goal.assignedEmployees &&
-                        goal.assignedEmployees.length > 0 ? (
+                          goal.assignedEmployees.length > 0 ? (
                           <div className="space-y-1">
                             {goal.assignedEmployees
                               .map((empId) =>
@@ -365,7 +672,7 @@ export default function GoalsPage() {
                               className="text-red-600"
                               onClick={(e) => {
                                 e.preventDefault();
-                                handleDeleteClick(goal);
+                                setDeletingGoal({ id: goal.$id, title: goal.title });
                               }}
                             >
                               Delete

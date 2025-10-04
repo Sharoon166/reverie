@@ -164,7 +164,6 @@ export default function GreetingAndStats() {
 
   const statsList = [
     { icon: Users, label: 'Employees', value: stats.employees },
-    { icon: UserPlus2, label: 'Hirings', value: stats.hirings },
     { icon: ToolCase, label: 'Projects', value: stats.projects },
   ];
 
@@ -188,9 +187,9 @@ export default function GreetingAndStats() {
         />
       </div>
 
-      <div className="flex justify-between gap-8 flex-wrap">
+      <div className="flex justify-end gap-8 flex-wrap">
         {/* Left Capsule Stat */}
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <div className="grid place-content-center gap-2">
             <span className="text-muted-foreground text-sm font-medium">
               {currentCapsule.label}
@@ -203,7 +202,7 @@ export default function GreetingAndStats() {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
 
         {/* Right Stats */}
         <div className="flex gap-6">

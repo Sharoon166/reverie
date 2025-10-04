@@ -28,6 +28,9 @@ import {
   FileText,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { KPICard } from '@/components/ui/kpi-card';
+import { formatDate } from '@/lib/date-utils';
+import { formatPakistaniCurrency } from '@/lib/utils';
 interface Activity {
   id: string;
   type: string;
@@ -116,7 +119,6 @@ export default function DashboardPage() {
   return (
     <div className="pt-16 space-y-6">
       <GreetingAndStats />
-      <pre></pre>
 
       <div className="grid grid-cols-12 gap-6">
         {/* Profile Card */}
@@ -126,66 +128,34 @@ export default function DashboardPage() {
 
         {/* Main Content */}
         <div className="col-span-12 lg:col-span-9 space-y-6">
-          <h2 className="text-2xl font-bold">Key Metrics</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {kpis.map((kpi) => {
-              const IconComponent =
-                {
-                  Coins: Coins,
-                  TrendingUp: TrendingUp,
-                  Users: Users,
-                  Target: Target,
-                  CheckCircle2: CheckCircle2,
-                }[kpi.icon] || Coins;
+          <h2 className="text-2xl font-semibold mb-4">Quarterly KPIs</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {kpis.map((kpi, index) => {
+              const IconComponent = {
+                Coins: Coins,
+                TrendingUp: TrendingUp,
+                Users: Users,
+                Target: Target,
+                CheckCircle2: CheckCircle2,
+                FileText: FileText,
+              }[kpi.icon] || Coins;
+
+              // Format value based on type
+              const formattedValue = kpi.type === 'currency'
+                ? formatPakistaniCurrency(kpi.currentValue || 0)
+                : kpi.type === 'percentage'
+                  ? `${kpi.currentValue.toFixed(1)}%`
+                  : kpi.currentValue.toLocaleString();
+
 
               return (
-                <Card key={kpi.id}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {kpi.name}
-                    </CardTitle>
-                    <IconComponent className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {kpi.type === 'currency' &&
-                        new Intl.NumberFormat('en-PK', {
-                          style: 'currency',
-                          currency: 'PKR',
-                        }).format(kpi.currentValue)}
-                      {kpi.type === 'percentage' &&
-                        `${kpi.currentValue.toFixed(1)}%`}
-                      {kpi.type === 'number' &&
-                        kpi.currentValue.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {kpi.changeType === 'increase' ? '+' : ''}
-                      {kpi.change}% from last month
-                    </p>
-                    <div className="mt-4">
-                      <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                        <span>
-                          Target:{' '}
-                          {kpi.type === 'currency'
-                            ? new Intl.NumberFormat('en-PK', {
-                                style: 'currency',
-                                currency: 'PKR',
-                              }).format(kpi.targetValue)
-                            : kpi.type === 'percentage'
-                              ? `${kpi.targetValue.toFixed(1)}%`
-                              : kpi.targetValue.toLocaleString()}
-                        </span>
-                        <span>{Math.round(kpi.progress)}%</span>
-                      </div>
-                      <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${kpi.color}`}
-                          style={{ width: `${Math.min(100, kpi.progress)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <KPICard
+                  key={kpi.id}
+                  title={kpi.name}
+                  value={formattedValue}
+                  icon={<IconComponent className="h-5 w-5" />}
+                  color={index%2==0 ? 'bg-zinc-900 text-white' : 'bg-yellow-500 text-white'}
+                />
               );
             })}
           </div>
@@ -222,7 +192,7 @@ export default function DashboardPage() {
                           {activity.description}
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(activity.date).toLocaleDateString()}
+                          {formatDate(activity.date)}
                         </p>
                       </div>
                     </div>

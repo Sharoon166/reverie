@@ -37,7 +37,7 @@ export function KPICard({
           </div>
         </div>
         {progress !== undefined && (
-          <div className="w-40 space-y-1">
+          <div className="w-28 space-y-1">
             <div className="text-xs text-gray-500 flex items-center justify-between">
               <span>{progress.toFixed(1)}%</span>
               <div className="flex items-center">
@@ -49,7 +49,7 @@ export function KPICard({
                   <Award className="inline size-4 text-blue-500" />
                 ) : null}
                 {progress > 100 && (
-                  <span className="ml-1 text-amber-500 font-medium">+{Math.floor(progress - 100)} 🎉</span>
+                  <span className="ml-1 text-amber-500 font-medium"> 🎉</span>
                 )}
               </div>
             </div>

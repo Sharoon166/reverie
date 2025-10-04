@@ -1,9 +1,11 @@
 import InvoicesPageClient from '@/components/invoices/InvoicesPageClient';
 import { getAllInvoices } from '@/actions/invoices';
 import { getAllClients } from '@/actions/clients';
+import { getOrCreateCurrentQuarter } from '@/utils/quarterCreation';
 
 export default async function InvoicesPage() {
   const invoices = await getAllInvoices();
+  const quarter  = await getOrCreateCurrentQuarter();
   const clientsRes = await getAllClients();
   const raw =
     (clientsRes as unknown as { rows?: unknown[] })?.rows ??
@@ -14,5 +16,5 @@ export default async function InvoicesPage() {
     name: String(c.name ?? ''),
     company: (c.company as string) || undefined,
   }));
-  return <InvoicesPageClient initialInvoices={invoices} clients={clients} />;
+  return <InvoicesPageClient quarter={quarter} initialInvoices={invoices} clients={clients} />;
 }

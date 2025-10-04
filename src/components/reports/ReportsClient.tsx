@@ -338,11 +338,6 @@ export default function ReportsClient({ summaries }: Props) {
 
         setShowCloseDialog(false);
 
-        // Refresh the page to show updated data
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-
         return `Quarter ${selectedQuarter.name} has been closed successfully!`;
       } finally {
         setIsClosing(false);
@@ -356,6 +351,8 @@ export default function ReportsClient({ summaries }: Props) {
         error.message || 'Failed to close quarter. Please try again.',
     });
   };
+
+  const isCurrentQuarter = selectedQuarter.status == "active";
 
   return (
     <div className="pt-16 space-y-6">
@@ -432,6 +429,7 @@ export default function ReportsClient({ summaries }: Props) {
             </div>
           </CardContent>
         </Card>
+
         {/* Financial Summary */}
         <Card>
           <CardHeader>
@@ -441,7 +439,7 @@ export default function ReportsClient({ summaries }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            {isCurrentQuarter ? <div className='text-muted-foreground'>This Quarter is not closed yet!</div> : <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                 <span className="text-green-700 font-medium">
                   Total Revenue
@@ -476,13 +474,13 @@ export default function ReportsClient({ summaries }: Props) {
                   {selectedQuarter.profitMargin}%
                 </span>
               </div>
-            </div>
+            </div>}
           </CardContent>
         </Card>
       </div>
 
       {/* Report Sections Preview */}
-      <Card>
+      {!isCurrentQuarter && <Card>
         <CardHeader>
           <CardTitle>Report Sections - {selectedQuarter.name}</CardTitle>
           <CardDescription>
@@ -509,7 +507,7 @@ export default function ReportsClient({ summaries }: Props) {
             ))}
           </div>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Close Quarter Dialog */}
       <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
@@ -546,7 +544,7 @@ export default function ReportsClient({ summaries }: Props) {
                 </div>
                 <div className="flex justify-between font-medium border-t pt-1">
                   <span>Cash on Hand:</span>
-                  <span className={cn("text-green-500",{
+                  <span className={cn("text-green-500", {
                     "text-destructive": (selectedQuarter.totalRevenue - selectedQuarter.totalExpenses - selectedQuarter.totalSalaries) < 0
                   })}>
                     {' '}
@@ -561,7 +559,7 @@ export default function ReportsClient({ summaries }: Props) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="withdrawal" className='font-semibold'>Withdrawal Amount (Optional)</Label>
+              <Label htmlFor="withdrawal" className='font-semibold'>Withdrawal Amount</Label>
               <Input
                 id="withdrawal"
                 type="number"

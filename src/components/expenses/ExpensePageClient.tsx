@@ -31,13 +31,15 @@ import {
 import { ExpenseTargetForm } from '@/components/forms/ExpenseTargetForm';
 import ExpensesTable from './ExpensesTable';
 import { getAllExpenses } from '@/actions/expenses';
-import {
-  createOrUpdateExpenseTarget,
-  getExpenseTarget,
-} from '@/actions/expenseTargets';
+import { getExpenseTarget } from '@/actions/expenseTargets';
+import { updateQuarter } from '@/app/actions/quarters';
 import { formatPakistaniCurrency } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
+import { DialogFooter } from '@/components/ui/dialog';
+import type { Quarter } from '@/types/quarter';
 
 interface ExpensesPageClientProps {
+  quarter: Quarter | null;
   initialExpenses: Expense[];
   actions: {
     create: (data: ExpenseFormValues) => Promise<unknown>;
@@ -47,6 +49,7 @@ interface ExpensesPageClientProps {
 }
 
 export default function ExpensesPageClient({
+  quarter,
   initialExpenses,
   actions,
 }: ExpensesPageClientProps) {
@@ -61,17 +64,9 @@ export default function ExpensesPageClient({
   const [isLoading, setIsLoading] = useState(false);
   const [isQuarterClosed, setIsQuarterClosed] = useState(false);
   const [targetLoading, setTargetLoading] = useState(false);
-  const [targetInitial, setTargetInitial] = useState<{
-    targetAmount?: number;
-    currency?: 'PKR';
-    month?: string;
-  }>();
-  const [targetAmountDb, setTargetAmountDb] = useState<number>(0);
-  const [targetCurrencyDb, setTargetCurrencyDb] = useState<'PKR'>(
-    'PKR'
-  );
+  const [targetAmount, setTargetAmount] = useState<number>(0);
   const now = new Date();
-
+  
   function getQuarter(d: Date) {
     return Math.floor(d.getMonth() / 3) + 1;
   }
@@ -88,67 +83,32 @@ export default function ExpensesPageClient({
   const loadExpenseTarget = useCallback(async () => {
     try {
       setTargetLoading(true);
-      const existing = await getExpenseTarget(selectedQuarter, selectedYear);
-      const defaultMonth = `${selectedYear}-${String((selectedQuarter - 1) * 3 + 1).padStart(2, '0')}`;
-      if (existing) {
-        setTargetInitial({
-          targetAmount: Number(existing.targetAmount) || undefined,
-          currency: "PKR",
-          month: defaultMonth,
-        });
-        setTargetAmountDb(Number(existing.targetAmount) || 0);
-        setTargetCurrencyDb(
-          "PKR"
-        );
+      if (quarter) {
+        setTargetAmount(quarter.expenseTarget ?? 0);
       } else {
-        setTargetInitial({ month: defaultMonth, currency: 'PKR' });
-        setTargetAmountDb(0);
-        setTargetCurrencyDb('PKR');
+        setTargetAmount(0);
       }
-    } catch {
-      setTargetInitial({
-        month: `${selectedYear}-${String((selectedQuarter - 1) * 3 + 1).padStart(2, '0')}`,
-        currency: 'PKR',
-      });
+    } catch (error) {
+      console.error('Error loading expense target:', error);
+      setTargetAmount(0);
     } finally {
       setTargetLoading(false);
     }
-  }, [selectedQuarter, selectedYear]);
+  }, [quarter]);
 
   // Load target when dialog opens or quarter/year changes
   useEffect(() => {
-    if (showTargetDialog && !targetLoading) {
+    if (showTargetDialog) {
       loadExpenseTarget();
     }
-  }, [showTargetDialog, targetLoading, loadExpenseTarget]);
+  }, [showTargetDialog, loadExpenseTarget]);
 
-  // Also load target for KPI when quarter/year changes (without opening dialog)
+  // Also load target for KPI when quarter changes
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const existing = await getExpenseTarget(selectedQuarter, selectedYear);
-        if (cancelled) return;
-        if (existing) {
-          setTargetAmountDb(Number(existing.targetAmount) || 0);
-          setTargetCurrencyDb(
-            "PKR"
-          );
-        } else {
-          setTargetAmountDb(0);
-          setTargetCurrencyDb('PKR');
-        }
-      } catch {
-        if (!cancelled) {
-          setTargetAmountDb(0);
-          setTargetCurrencyDb('PKR');
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedQuarter, selectedYear]);
+    if (quarter) {
+      setTargetAmount(quarter.expenseTarget ?? 0);
+    }
+  }, [quarter]);
 
   // Check if current quarter is closed
   useEffect(() => {
@@ -207,37 +167,26 @@ export default function ExpensesPageClient({
     (sum, e) => sum + (e.amount || 0),
     0
   );
-  const targetAmount = targetAmountDb; // from backend
+  const currentTargetAmount = quarter?.expenseTarget ?? 0;
   const targetProgress =
-    targetAmount > 0 ? (totalExpenses / targetAmount) * 100 : 0;
+    currentTargetAmount > 0 ? (totalExpenses / currentTargetAmount) * 100 : 0;
 
-  async function handleTargetSubmit(data: {
-    targetAmount: number;
-    currency: 'PKR';
-    month: string;
-  }) {
+  async function handleTargetSubmit() {
+    if (!quarter) return;
+    
     try {
       setTargetLoading(true);
-      // Derive quarter/year from month
-      const [yStr, mStr] = data.month.split('-');
-      const y = Number(yStr);
-      const m = Number(mStr);
-      const q = (Math.floor((m - 1) / 3) + 1) as 1 | 2 | 3 | 4;
-      await createOrUpdateExpenseTarget(
-        q,
-        y,
-        Number(data.targetAmount),
-        data.currency
-      );
+      await updateQuarter(quarter.$id, {
+        expenseTarget: Number(targetAmount)
+      });
       toast.success('Expense target saved');
       setShowTargetDialog(false);
-      setTargetInitial(undefined);
-      // Update local state for immediate KPI refresh
-      if (q === selectedQuarter && y === selectedYear) {
-        setTargetAmountDb(Number(data.targetAmount) || 0);
-        setTargetCurrencyDb(data.currency);
+      // Update the quarter prop with the new target
+      if (quarter) {
+        quarter.expenseTarget = targetAmount;
       }
-    } catch {
+    } catch (error) {
+      console.error('Error saving expense target:', error);
       toast.error('Failed to save expense target');
     } finally {
       setTargetLoading(false);
@@ -589,15 +538,7 @@ export default function ExpensesPageClient({
             className="w-24"
           />
         </div>
-        <Button
-          variant="outline"
-          onClick={fetchExpenses}
-          disabled={isLoading}
-          className="border-gray-300"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
+
       </div>
 
       {/* Stats Cards */}
@@ -623,10 +564,29 @@ export default function ExpensesPageClient({
               <Target className="h-6 w-6 text-white" />
             </div>
             <div>
-              <div className="text-3xl font-light text-gray-900">
-                {targetProgress.toFixed(1)}%
+              <div className="flex flex-col">
+                <div className={`text-3xl font-light ${
+                  targetProgress >= 90 ? 'text-red-600' : 
+                  targetProgress >= 75 ? 'text-amber-500' : 'text-green-600'
+                }`}>
+                  {targetProgress.toFixed(1)}%
+                </div>
+                <div className="text-sm text-gray-600">
+                  {currentTargetAmount > 0 
+                    ? (
+                      <>
+                        <span className={totalExpenses > currentTargetAmount ? 'text-red-600 font-medium' : ''}>
+                          {formatPakistaniCurrency(totalExpenses)}
+                        </span>
+                        <span> of </span>
+                        <span>{formatPakistaniCurrency(currentTargetAmount)}</span>
+                        {totalExpenses > currentTargetAmount && (
+                          <span className="ml-1 text-red-600 font-medium">(Over Budget)</span>
+                        )}
+                      </>
+                    ) : 'No target set'}
+                </div>
               </div>
-              <div className="text-sm text-gray-600">Target Progress</div>
             </div>
           </div>
         </Card>
@@ -683,27 +643,52 @@ export default function ExpensesPageClient({
         open={showTargetDialog}
         onOpenChange={(v) => {
           setShowTargetDialog(v);
-          if (!v) setTargetInitial(undefined);
+          if (!v) setTargetAmount(0);
         }}
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              Set Expense Target for {selectedQuarterTag}
-            </DialogTitle>
+            <DialogTitle>Set Expense Target for {selectedQuarterTag}</DialogTitle>
             <DialogDescription>
-              Define your monthly cap for this quarter.
+              Define your expense target for this quarter.
             </DialogDescription>
           </DialogHeader>
-          <ExpenseTargetForm
-            initialData={targetInitial}
-            previousTarget={{
-              amount: targetAmountDb,
-              currency: targetCurrencyDb,
-            }}
-            onSubmit={handleTargetSubmit}
-            isLoading={targetLoading}
-          />
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="targetAmount" className="text-right">
+                Target (PKR)
+              </Label>
+              <Input
+                id="targetAmount"
+                type="number"
+                min="0"
+                value={targetAmount}
+                onChange={(e) => setTargetAmount(Number(e.target.value) || 0)}
+                className="col-span-3"
+                disabled={targetLoading}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowTargetDialog(false)}
+                disabled={targetLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleTargetSubmit}
+                disabled={targetLoading}
+              >
+                {targetLoading && (
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Save Target
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

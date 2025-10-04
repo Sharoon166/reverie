@@ -7,14 +7,16 @@ import {
   updateExpense,
   deleteExpense,
 } from '@/actions/expenses';
+import { getOrCreateCurrentQuarter } from '@/utils/quarterCreation';
 
 export default async function ExpensesPage() {
   const res = await getAllExpenses();
+  const quarter = await getOrCreateCurrentQuarter()
   const rows = Array.isArray((res as unknown as { rows?: unknown })?.rows)
     ? ((res as unknown as { rows?: unknown[] }).rows as Record<
-        string,
-        unknown
-      >[])
+      string,
+      unknown
+    >[])
     : [];
 
   type Row = {
@@ -109,6 +111,7 @@ export default async function ExpensesPage() {
 
   return (
     <ExpensesPageClient
+      quarter={quarter}
       initialExpenses={expenses}
       actions={{
         create: createExpense,
