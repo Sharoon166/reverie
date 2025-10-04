@@ -1,6 +1,6 @@
 'use client';
 
-import { ToolCase, UserPlus2, Users } from 'lucide-react';
+import { ToolCase, Users } from 'lucide-react';
 import MotivationRotator from '../MotivationRotator';
 import { useEffect, useState } from 'react';
 import { getDashboardStats } from '@/actions/dashboard';
@@ -135,39 +135,39 @@ export default function GreetingAndStats() {
     fetchData();
   }, []);
 
-  const growthPercentage =
-    stats.revenue.lastMonth > 0
-      ? ((stats.revenue.current - stats.revenue.lastMonth) /
-          stats.revenue.lastMonth) *
-        100
-      : 0;
+  // const growthPercentage =
+  //   stats.revenue.lastMonth > 0
+  //     ? ((stats.revenue.current - stats.revenue.lastMonth) /
+  //         stats.revenue.lastMonth) *
+  //       100
+  //     : 0;
 
-  const capsuleStats = [
-    {
-      label: 'Revenue (MTD)',
-      value: new Intl.NumberFormat('en-PK', {
-        style: 'currency',
-        currency: 'PKR',
-        maximumFractionDigits: 0,
-      }).format(stats.revenue.current),
-    },
-    {
-      label: 'Growth',
-      value: `${growthPercentage > 0 ? '+' : ''}${growthPercentage.toFixed(1)}%`,
-      isPositive: growthPercentage >= 0,
-    },
-    {
-      label: 'Satisfaction',
-      value: '92%', // This would come from a feedback/ratings API
-    },
-  ];
+  // const capsuleStats = [
+  //   {
+  //     label: 'Revenue (MTD)',
+  //     value: new Intl.NumberFormat('en-PK', {
+  //       style: 'currency',
+  //       currency: 'PKR',
+  //       maximumFractionDigits: 0,
+  //     }).format(stats.revenue.current),
+  //   },
+  //   {
+  //     label: 'Growth',
+  //     value: `${growthPercentage > 0 ? '+' : ''}${growthPercentage.toFixed(1)}%`,
+  //     isPositive: growthPercentage >= 0,
+  //   },
+  //   {
+  //     label: 'Satisfaction',
+  //     value: '92%', // This would come from a feedback/ratings API
+  //   },
+  // ];
 
   const statsList = [
     { icon: Users, label: 'Employees', value: stats.employees },
     { icon: ToolCase, label: 'Projects', value: stats.projects },
   ];
 
-  const currentCapsule = capsuleStats[0];
+  // const currentCapsule = capsuleStats[0];
 
   return (
     <div className="space-y-8">

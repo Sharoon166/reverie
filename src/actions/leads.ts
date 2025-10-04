@@ -13,7 +13,7 @@ type modifiedLead = {
   $tableId: string;
   $id: string;
   assignedTo?: string;
-  [key: string]: any; // Allow other properties
+  [key: string]: unknown; // Allow other properties
 };
 
 // ---- Server Actions for form submissions from client components ----
@@ -217,7 +217,7 @@ export async function getLeadsById(id: string): Promise<modifiedLead> {
 
   if (lead.assignedTo) {
     const employee = employeesRes.rows.find(
-      (emp: any) => emp.$id === lead.assignedTo
+      emp => emp.$id === lead.assignedTo
     );
     if (employee) {
       return {

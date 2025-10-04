@@ -34,6 +34,7 @@ interface Expense extends BaseRow {
 
 interface Client extends BaseRow {
   status: string;
+  retainer?: string | number;
 }
 
 export interface KPI {
@@ -107,7 +108,6 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 
   try {
-    const currentQuarter = await getOrCreateCurrentQuarter()
     // Get current quarter information
     const { quarter, year } = getCurrentQuarter();
     const { startDate, endDate } = getQuarterDateRange(quarter, year);

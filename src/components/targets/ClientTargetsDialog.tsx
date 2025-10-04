@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { updateQuarter } from '@/app/actions/quarters';
-import { getOrCreateCurrentQuarter } from '@/utils/quarterCreation';
 import type { Quarter } from '@/types/quarter';
 
 interface ClientTargetsDialogProps {

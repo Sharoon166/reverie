@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, LayoutDashboard, Search } from 'lucide-react';
-import DashboardPage from './(Dashboard)/page';
+import { LayoutDashboard } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -11,7 +10,7 @@ export default function NotFound() {
         <h2 className="text-3xl font-semibold">Page Not Found</h2>
         <p className="text-muted-foreground max-w-md">
           Looks like this page went on a coffee break.{' '}
-          <span className="block mt-1">Let's get you back on track.</span>
+          <span className="block mt-1">Let&apos;s get you back on track.</span>
         </p>
         <div className="pt-4">
           <Button asChild className="gap-2">

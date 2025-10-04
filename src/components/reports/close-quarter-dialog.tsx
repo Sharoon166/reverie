@@ -34,7 +34,8 @@ export function CloseQuarterDialog({
   withdrawalAmount,
   setWithdrawalAmount,
 }: CloseQuarterDialogProps) {
-  const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
+  // const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
+  const [, setShowWithdrawalDialog] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   
   const today = new Date();
@@ -75,7 +76,7 @@ export function CloseQuarterDialog({
           <DialogHeader>
             <DialogTitle>Withdraw Funds</DialogTitle>
             <DialogDescription>
-              Enter the amount you'd like to withdraw before closing the quarter.
+              Enter the amount you&apos;d like to withdraw before closing the quarter.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

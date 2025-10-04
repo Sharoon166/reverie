@@ -1,7 +1,6 @@
 'use server';
 
 import { APPWRITE_DB, db, ID } from '@/lib/appwrite';
-import { formatPakistaniCurrency } from '@/lib/utils';
 import { Query } from 'appwrite';
 import { createQuarter } from '@/utils/quarterCreation';
 
@@ -397,9 +396,9 @@ export async function closeQuarter(
     // 5. If there's a remaining balance, create a starting balance for next quarter
     const remainingBalance = cashOnHand - withdrawalAmount;
     if (remainingBalance > 0) {
-      const nextQuarter = quarter === 4 ? 1 : ((quarter + 1) as 1 | 2 | 3 | 4);
-      const nextYear = quarter === 4 ? year + 1 : year;
-      const nextQuarterId = `q${nextQuarter}-${nextYear}`;
+      // const nextQuarter = quarter === 4 ? 1 : ((quarter + 1) as 1 | 2 | 3 | 4);
+      // const nextYear = quarter === 4 ? year + 1 : year;
+      // const nextQuarterId = `q${nextQuarter}-${nextYear}`;
 
       await db.createRow({
         databaseId: APPWRITE_DB.databaseId,

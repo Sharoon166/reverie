@@ -6,7 +6,7 @@ import { ID, Query } from 'appwrite';
 
 export async function createQuarter(year: number, quarter: 1 | 2 | 3 | 4): Promise<Quarter> {
   const quarterId = `q${quarter}-${year}`;
-  const quarterName = `Q${quarter}`;
+  // const quarterName = `Q${quarter}`;
   const now = new Date().toISOString();
   
   // Create quarter object with only the specified fields

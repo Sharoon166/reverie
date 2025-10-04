@@ -20,7 +20,7 @@ import { Button } from './ui/button';
 import { account } from '@/lib/appwrite';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarFallback } from './ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,

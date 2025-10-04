@@ -134,7 +134,7 @@ export async function getInvoiceMetrics(quarter: Quarter) {
     ),
     calculateMetric(
       quarter.unpaidInvoices ?? 0,
-      (quarter as any).invoicesPendingTarget ?? undefined
+      quarter.invoicesPendingTarget ?? undefined
     ),
   ]);
 

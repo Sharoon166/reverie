@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,7 +88,7 @@ export default function ClientsPageClient({
   const pagination = usePagination({ data: filteredClients, itemsPerPage: 6 });
 
   const now = new Date();
-  const getQuarter = (date: Date) => Math.floor((date.getMonth() + 3) / 3);
+  // const getQuarter = (date: Date) => Math.floor((date.getMonth() + 3) / 3);
 
   const totalRevenue = filteredClients.reduce(
     (sum, c) => sum + (c.totalSpent || 0),
@@ -103,7 +103,7 @@ export default function ClientsPageClient({
   );
 
   // KPI Metrics
-  const totalClientsAllTime = filteredClients.length;
+  // const totalClientsAllTime = filteredClients.length;
   const totalAgenciesAllTime = new Set(
     filteredClients.map((c) => c.company).filter(Boolean)
   ).size;

@@ -22,7 +22,6 @@ import {
   Filter,
   MoreVertical,
   Receipt,
-  CheckCircle,
   AlertCircle,
   Target,
 } from 'lucide-react';

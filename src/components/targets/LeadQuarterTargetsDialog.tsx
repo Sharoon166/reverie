@@ -15,7 +15,6 @@ import {
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateQuarter } from '@/app/actions/quarters';
-import { getOrCreateCurrentQuarter } from '@/utils/quarterCreation';
 import type { Quarter } from '@/types';
 
 interface QuarterTargetsDialogProps {
@@ -44,7 +43,7 @@ export function LeadQuarterTargetsDialog({
           meetingsBookedTarget: quarter.meetingsBookedTarget ?? 0,
         });
       }
-    }, []);
+    }, [quarter]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

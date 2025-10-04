@@ -34,15 +34,14 @@ export default function ExpensesTable({
   isLoading,
   isQuarterClosed = false,
 }: ExpensesTableProps) {
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage,] = useState(10);
+  // const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const {
     currentPage,
     totalPages,
     paginatedData,
     goToPage,
-    nextPage,
-    prevPage,
     canGoNext,
     canGoPrev,
     startIndex,

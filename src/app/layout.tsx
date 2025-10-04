@@ -1,4 +1,3 @@
-import Header from '@/components/Header';
 import AuthGate from '@/components/AuthGate';
 import './globals.css';
 import type { Metadata } from 'next';

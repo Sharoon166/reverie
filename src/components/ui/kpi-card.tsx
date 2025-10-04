@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Card } from '@/components/ui/card';
-import { Crown, Award, Star, Trophy } from 'lucide-react';
+import { Crown, Award, Trophy } from 'lucide-react';
 
 interface KPICardProps {
   title: string;

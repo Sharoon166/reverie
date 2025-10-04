@@ -3,7 +3,6 @@
 import { db, APPWRITE_DB } from '@/lib/appwrite';
 import { revalidatePath } from 'next/cache';
 import { Quarter } from '@/types/quarter';
-import { Query } from 'appwrite';
 
 const QUARTERS_COLLECTION = 'quarters';
 

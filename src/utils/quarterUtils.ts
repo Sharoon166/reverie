@@ -9,8 +9,6 @@ import {
   calculateOverallPerformance,
   type Metric
 } from './quarterTargets';
-import { db, APPWRITE_DB } from '@/lib/appwrite';
-import { ID, Query } from 'appwrite';
 
 // Generate KPI dashboard summary
 export async function generateKpiSummary(quarter: Quarter) {

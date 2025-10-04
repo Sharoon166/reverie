@@ -43,7 +43,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { MoreHorizontal, Plus, Trash2, CalendarIcon } from 'lucide-react';
+import { MoreHorizontal, Trash2, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -63,7 +63,6 @@ import {
   type EmployeeOption,
   type GoalFormValues,
 } from '@/actions/goals';
-import { Badge } from '@/components/ui/badge';
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);

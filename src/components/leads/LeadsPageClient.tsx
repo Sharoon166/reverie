@@ -1,12 +1,11 @@
 'use client';
 
-import { useCallback, useMemo, useState, useTransition, useEffect, useLayoutEffect } from 'react';
+import { useCallback, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LeadQuarterTargetsDialog } from '@/components/targets/LeadQuarterTargetsDialog';
 import type { Quarter } from '@/types/quarter';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +44,7 @@ import { LeadForm, type LeadFormValues } from '@/components/forms';
 import { PRIORITY_LEVELS, LEAD_STATUS } from '@/lib/constants';
 import { formatPakistaniCurrency } from '@/lib/utils';
 import { KPICard } from '@/components/ui/kpi-card';
+import { Input } from '../ui/input';
 
 export type LeadsPageClientProps = {
   initialLeads: Lead[];
@@ -114,8 +114,8 @@ export default function LeadsPageClient({
   const isLoading = isPending;
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // 4 leads per page
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const itemsPerPage = 4; // 4 leads per page
 
   const now = useMemo(() => new Date(), []);
   const getQuarter = useCallback(
@@ -180,9 +180,9 @@ export default function LeadsPageClient({
   const qualifiedLeads = filteredLeads.filter(
     (lead) => String(lead.status).toLowerCase() === 'qualified'
   ).length;
-  const convertedLeads = filteredLeads.filter(
-    (lead) => String(lead.status).toLowerCase() === 'converted'
-  ).length;
+  // const convertedLeads = filteredLeads.filter(
+  //   (lead) => String(lead.status).toLowerCase() === 'converted'
+  // ).length;
   const newLeads = filteredLeads.filter(
     (lead) => String(lead.status).toLowerCase() === 'new'
   ).length;
@@ -197,7 +197,6 @@ export default function LeadsPageClient({
   const agencyPartnerships = leadsThisQuarter.filter(
     (l) => l.source?.toLowerCase() === 'agency'
   ).length;
-  const totalLeads = leadsThisQuarter.length;
 
   // Targets (you can adjust these values as needed)
   const TARGETS = {
@@ -439,8 +438,8 @@ export default function LeadsPageClient({
       proposalsSent,
       meetingsBooked,
       agencyPartnerships,
-      totalLeads,
       quarter,
+      TARGETS.agencyPartnerships
     ]
   );
 

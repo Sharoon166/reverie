@@ -4,21 +4,11 @@ import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from '@/components/ui/dialog';
-import type { Lead, LeadPriority, LeadSource, LeadStatus } from '@/types/lead';
+import type { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
-  Edit,
   Trash2,
   UserCheck,
   Mail,
@@ -31,8 +21,6 @@ import {
   Clock,
   FileText,
 } from 'lucide-react';
-import { LEAD_SOURCES, LEAD_STATUS, PRIORITY_LEVELS } from '@/lib/constants';
-import { Currency } from '@/types';
 import { formatDate } from '@/lib/date-utils';
 
 export type LeadDetailClientProps = {
@@ -90,10 +78,11 @@ export default function LeadDetailClient({
 }: LeadDetailClientProps) {
   const router = useRouter();
   const [lead, setLead] = useState<Lead>(initialLead);
-  const [showEditDialog, setShowEditDialog] = useState(false);
+  // const [showEditDialog, setShowEditDialog] = useState(false);
   const [formData, setFormData] = useState<Lead>({} as Lead);
   const [isPending, startTransition] = useTransition();
   const isLoading = isPending;
+  console.log(formData, setLead, toFormData)
 
   useEffect(() => {
     setFormData(initialLead);
@@ -102,12 +91,12 @@ export default function LeadDetailClient({
   const fmtDate = (d?: string | null) =>
     d
       ? new Date(d).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
       : undefined;
 
   function toFormData(data: Lead) {
@@ -132,27 +121,27 @@ export default function LeadDetailClient({
     return fd;
   }
 
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    startTransition(async () => {
-      try {
-        const id = String(lead.id);
-        const updatedRaw = await actions.update(id, toFormData(formData));
-        const updated = {
-          ...(updatedRaw as Lead),
-          id: String(
-            (updatedRaw as Lead)?.id ?? (updatedRaw as Lead)?.$id ?? id
-          ),
-        };
-        setLead(updated);
-        setFormData(updated);
-        setShowEditDialog(false);
-        toast.success('Lead updated successfully');
-      } catch {
-        toast.error('Failed to update lead. Please try again.');
-      }
-    });
-  }
+  // function handleSave(e: React.FormEvent) {
+  //   e.preventDefault();
+  //   startTransition(async () => {
+  //     try {
+  //       const id = String(lead.id);
+  //       const updatedRaw = await actions.update(id, toFormData(formData));
+  //       const updated = {
+  //         ...(updatedRaw as Lead),
+  //         id: String(
+  //           (updatedRaw as Lead)?.id ?? (updatedRaw as Lead)?.$id ?? id
+  //         ),
+  //       };
+  //       setLead(updated);
+  //       setFormData(updated);
+  //       // setShowEditDialog(false);
+  //       toast.success('Lead updated successfully');
+  //     } catch {
+  //       toast.error('Failed to update lead. Please try again.');
+  //     }
+  //   });
+  // }
 
   function handleDelete() {
     startTransition(async () => {
