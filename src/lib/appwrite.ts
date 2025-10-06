@@ -37,7 +37,8 @@ export const db = new TablesDB(client);
 export const storage = new Storage(client);
 
 export const APPWRITE_DB = {
-  databaseId: '68e38e530009e5262f29',
+  databaseId: '68e38e530009e5262f29', // ALI BHAI WALI
+  // databaseId: '68b00c82003517559e80', // LOCAL
   tables: {
     employees: 'employees',
     projects: 'projects',
@@ -53,7 +54,8 @@ export const APPWRITE_DB = {
     quarters: 'quarters',
   },
   buckets: {
-    reverie: '68e39af9002fb2fbc1bb',
+    reverie: '68e39af9002fb2fbc1bb', //Ali bhai ka 
+    // reverie: '68b00e030000c6f5d281', //Local
   },
 };
 
